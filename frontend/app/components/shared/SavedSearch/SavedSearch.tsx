@@ -5,8 +5,9 @@ import { connect } from 'react-redux';
 import { fetchList as fetchListSavedSearch } from 'Duck/search';
 import OutsideClickDetectingDiv from 'Shared/OutsideClickDetectingDiv';
 import cn from 'classnames';
-import { list } from 'App/components/BugFinder/CustomFilters/filterModal.css';
 import stl from './SavedSearch.css';
+import { useModal } from 'App/components/Modal';
+import SavedSearchModal from './components/SavedSearchModal'
 
 interface Props {
   fetchListSavedSearch: () => void;
@@ -17,23 +18,24 @@ function SavedSearch(props) {
   const { list } = props;
   const { savedSearch }  = props;
   const [showMenu, setShowMenu] = useState(false)
+  const { showModal } = useModal();
 
   useEffect(() => {
     props.fetchListSavedSearch()
   }, [])
 
   return (
-    <OutsideClickDetectingDiv 
-      // className={ cn("relative", { "flex-1" : fullWidth }) } 
+    <OutsideClickDetectingDiv
       onClickOutside={() => setShowMenu(false)}
     >
       <div className="relative">
         <div className={cn("flex items-center", { [stl.disabled] : list.size === 0})}>
           <Button outline size="small"
             className="flex items-center"
-            onClick={() => setShowMenu(true)}
+            onClick={() => showModal(<SavedSearchModal list={list} />, { right: true })}
           >
-            <span className="mr-2">{`Saved Search (${list.size})`}</span>
+            <span className="mr-1">Saved Search</span>
+            <span className="font-bold mr-2">{list.size}</span>
             <Icon name="ellipsis-v" color="teal" size="14" />
           </Button>
           { savedSearch.exists() && (
