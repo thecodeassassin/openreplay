@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useStore } from 'App/mstore';
+import { Icon, BackLink, Loader } from 'UI';
 import WidgetForm from '../WidgetForm';
 import WidgetPreview from '../WidgetPreview';
 import WidgetSessions from '../WidgetSessions';
-import { Icon, BackLink, Loader } from 'UI';
 import { useObserver } from 'mobx-react-lite';
 import { withSiteId } from 'App/routes';
 import WidgetName from '../WidgetName';
+
 interface Props {
     history: any;
     match: any
@@ -29,7 +30,7 @@ function WidgetView(props: Props) {
 
     const onBackHandler = () => {
         if (dashboardId) {
-            props.history.push(withSiteId(`/dashboard/${dashboardId}`, siteId));    
+            props.history.push(withSiteId(`/dashboard/${dashboardId}`, siteId));
         } else {
             props.history.push(withSiteId(`/metrics`, siteId));
         }

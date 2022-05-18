@@ -11,15 +11,18 @@ import DashboardModal from '../DashboardModal';
 import cn from 'classnames';
 import { Tooltip } from 'react-tippy';
 import { connect } from 'react-redux';
+import { compose } from 'redux'
 import { setShowAlerts } from 'Duck/dashboard';
+import stl from 'Shared/MainSearchBar/mainSearchBar.css';
 
 const SHOW_COUNT = 8;
+
 interface Props {
     siteId: string
     history: any
     setShowAlerts: (show: boolean) => void
 }
-function DashboardSideMenu(props: Props) {
+function DashboardSideMenu(props: RouteComponentProps<Props>) {
     const { history, siteId, setShowAlerts } = props;
     const { hideModal, showModal } = useModal();
     const { dashboardStore } = useStore();
@@ -40,20 +43,34 @@ function DashboardSideMenu(props: Props) {
 
     const onAddDashboardClick = (e) => {
         dashboardStore.initDashboard();
-        showModal(<DashboardModal />, {})
+        showModal(<DashboardModal siteId={siteId} />, { right: true })
     }
 
-    const togglePinned = (dashboard) => {
+    const togglePinned = (dashboard, e) => {
+        e.stopPropagation();
         dashboardStore.updatePinned(dashboard.dashboardId);
     }
 
     return useObserver(() => (
         <div>
-            <SideMenuHeader className="mb-4" text="Dashboards" />
-            {dashboardsPicked.sort((a: any, b: any) => a.isPinned === b.isPinned ? 0 : a.isPinned ? -1 : 1 ).map((item: any) => (
+            <SideMenuHeader
+                className="mb-4 flex items-center"
+                text="DASHBOARDS"
+                button={
+                    <span
+                        className={cn("ml-1 flex items-center", stl.button)}
+                        onClick={onAddDashboardClick}
+                        style={{ marginBottom: 0 }}
+                    >
+                        <Icon name="plus" size="16" color="main" />
+                        <span className="ml-1" style={{ textTransform: 'none' }}>Create</span>
+                    </span>
+                }
+            />
+            {dashboardsPicked.map((item: any) => (
                 <SideMenuitem
                     key={ item.dashboardId }
-                    active={item.dashboardId === dashboardId}
+                    active={item.dashboardId === dashboardId && !isMetric}
                     title={ item.name }
                     iconName={ item.icon }
                     onClick={() => onItemClick(item)}
@@ -71,7 +88,7 @@ function DashboardSideMenu(props: Props) {
                                 >
                                     <div
                                         className={cn("p-1 invisible group-hover:visible cursor-pointer")}
-                                        onClick={() => togglePinned(item)}
+                                        onClick={(e) => togglePinned(item, e)}
                                     >
                                         <Icon name="pin-fill" size="16" color="gray-light" />
                                     </div>
@@ -94,15 +111,6 @@ function DashboardSideMenu(props: Props) {
             <div className="border-t w-full my-2" />
             <div className="w-full">
 				<SideMenuitem
-					id="menu-manage-alerts"
-					title="Create Dashboard"
-					iconName="plus"
-					onClick={onAddDashboardClick}
-				/>
-			</div>
-            <div className="border-t w-full my-2" />
-            <div className="w-full">
-				<SideMenuitem
                     active={isMetric}
 					id="menu-manage-alerts"
 					title="Metrics"
@@ -117,10 +125,13 @@ function DashboardSideMenu(props: Props) {
 					title="Alerts"
 					iconName="bell-plus"
 					onClick={() => setShowAlerts(true)}
-				/>				
+				/>
 			</div>
         </div>
     ));
 }
 
-export default connect(null, { setShowAlerts })(withRouter(DashboardSideMenu));
+export default compose(
+    withRouter,
+    connect(null, { setShowAlerts }),
+)(DashboardSideMenu) as React.FunctionComponent<RouteComponentProps<Props>>
