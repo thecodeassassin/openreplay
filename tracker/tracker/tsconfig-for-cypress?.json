@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "build",
+    "declaration": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "alwaysStrict": true,
+    "target": "es6",
+    "module": "es6",
+    "moduleResolution": "nodenext"
+  },
+  "exclude": ["**/*.test.ts"],
+  "module": "commonjs"
+}

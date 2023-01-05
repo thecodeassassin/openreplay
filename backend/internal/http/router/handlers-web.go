@@ -38,7 +38,7 @@ func (e *Router) readBody(w http.ResponseWriter, r *http.Request, limit int64) (
 	return bodyBytes, nil
 }
 
-func getSessionTimestamp(req *StartSessionRequest, startTimeMili int64) (ts uint64) {
+func getSessionTiming(req *StartSessionRequest, startTimeMili int64) (ts uint64, delay int64) {
 	ts = uint64(req.Timestamp)
 	c, err := semver.NewConstraint(">=4.1.6")
 	if err != nil {
@@ -48,8 +48,8 @@ func getSessionTimestamp(req *StartSessionRequest, startTimeMili int64) (ts uint
 	if err != nil {
 		return
 	}
-	if c.Check(v) {
-		return uint64(startTimeMili)
+	if c.Check(v) && startTimeMili-req.Timestamp {
+		return uint64(startTimeMili), startTimeMili - req.Timestamp
 	}
 	return
 }
@@ -116,14 +116,15 @@ func (e *Router) startSessionHandlerWeb(w http.ResponseWriter, r *http.Request) 
 		}
 		// TODO: if EXPIRED => send message for two sessions association
 		expTime := startTime.Add(time.Duration(p.MaxSessionDuration) * time.Millisecond)
+		timestamp, delay := getSessionTiming(req, startTimeMili)
 		tokenData = &token.TokenData{
 			ID:      sessionID,
-			Delay:   startTimeMili - req.Timestamp,
+			Delay:   delay,
 			ExpTime: expTime.UnixMilli(),
 		}
 
 		sessionStart := &SessionStart{
-			Timestamp:            getSessionTimestamp(req, startTimeMili),
+			Timestamp:            timestamp,
 			ProjectID:            uint64(p.ProjectID),
 			TrackerVersion:       req.TrackerVersion,
 			RevID:                req.RevID,

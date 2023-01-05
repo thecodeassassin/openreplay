@@ -1,0 +1,81 @@
+import type Message from '../common/messages.gen.js'
+import * as Messages from '../common/messages.gen.js'
+import MessageEncoder from './MessageEncoder.gen.js'
+import MessageWriter from './MessageWriter.js'
+
+const SIZE_BYTES = 3
+const MAX_M_SIZE = (1 << (SIZE_BYTES * 8)) - 1
+
+export default class BatchWriter {
+  private readonly beaconSize = 2 * 1e5 // 200kB per batch
+  private beaconSizeLimit = 1e6
+  private readonly messageWriter = new MessageWriter(this.beaconSize)
+  private readonly batchMetadata: Messages.BatchMetadata
+
+  constructor(
+    pageNo: number,
+    timestamp: number,
+    location: string,
+    private readonly onBatch: (batch: Uint8Array) => void,
+  ) {
+    this.batchMetadata = [
+      Messages.Type.BatchMetadata,
+      1, // version
+      pageNo,
+      0, // nextIndex
+      timestamp,
+      location,
+    ]
+  }
+
+  setBeaconSizeLimit(limit: number) {
+    this.beaconSizeLimit = limit
+  }
+
+  writeMessage(message: Message) {
+    if (message[0] === Messages.Type.Timestamp) {
+      this.timestamp = message[1] // .timestamp
+    }
+    if (message[0] === Messages.Type.SetPageLocation) {
+      this.location = message[1] // .location
+    }
+    if (this.messageWriter.writeMessage(message)) {
+      return
+    }
+    // buffer overflow, send already written data first and try again
+    this.finaliseBatch()
+    if (this.messageWriter.writeMessage(message)) {
+      return
+    }
+    // buffer is too small. Create one with maximal capacity
+    const bigMessageEncoder = new MessageWriter(
+      new MessageEncoder(this.beaconSizeLimit)
+    )
+    bigMessageEncoder.writeBatchMeta()
+    let messageWriter = this.messageWriter
+    let beaconSize = this.beaconSize
+    while (!messageWriter.writeMessage(message)) {
+
+      if (beaconSize === this.beaconSizeLimit) {
+        console.warn('OpenReplay: beacon size overflow. Skipping large message.', message, this)
+        this.prepare()
+        return
+      }
+      beaconSize = Math.min(beaconSize * 2, this.beaconSizeLimit)
+      this.encoder = new MessageEncoder(this.beaconSize)
+      this.prepare()
+    }
+  }
+
+  finaliseBatch() {
+    if (this.isEmpty) {
+      return
+    }
+    this.onBatch(this.encoder.flush())
+    this.prepare()
+  }
+
+  clean() {
+    this.encoder.reset()
+  }
+}

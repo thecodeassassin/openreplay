@@ -25,6 +25,7 @@ import Fonts from './modules/fonts.js'
 import Network from './modules/network.js'
 import ConstructedStyleSheets from './modules/constructedStyleSheets.js'
 import { IN_BROWSER, deprecationWarn, DOCS_HOST } from './utils.js'
+//import { applyPlugin, Plugin } from './plugin.js'
 
 import type { Options as AppOptions } from './app/index.js'
 import type { Options as ConsoleOptions } from './modules/console.js'
@@ -170,6 +171,17 @@ export default class API {
   use<T>(fn: (app: App | null, options?: Options) => T): T {
     return fn(this.app, this.options)
   }
+
+  // private readonly plugins: Partial<Plugin>[] = []
+  // use<T>(fn: (app: App | null) => T & Partial<Plugin>): T {
+  //   //TODO: add __DISABLE_SECURE_MODE__ to the options somehow
+  //   if (!this.app) {
+  //     return fn(null)
+  //   }
+  //   const plugin = applyPlugin(this.app, fn)
+  //   this.plugins.push(plugin)
+  //   return plugin
+  // }
 
   isActive(): boolean {
     if (this.app === null) {

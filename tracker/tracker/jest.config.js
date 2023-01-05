@@ -1,6 +1,11 @@
+import tsPreset from 'ts-jest/jest-preset.js'
+import puppeteerPreset from 'jest-puppeteer/jest-preset.js'
+
 /** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
 const config = {
-  preset: 'ts-jest',
+  ...tsPreset,
+  ...puppeteerPreset,
+  //preset: 'ts-jest',
   testEnvironment: 'jsdom',
   // .js file extension fix
   moduleNameMapper: {

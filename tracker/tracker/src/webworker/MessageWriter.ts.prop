@@ -1,0 +1,80 @@
+import type Message from '../common/messages.gen.js'
+import * as Messages from '../common/messages.gen.js'
+import MessageEncoder from './MessageEncoder.gen.js'
+
+const SIZE_BYTES = 3
+const MAX_M_SIZE = (1 << (SIZE_BYTES * 8)) - 1
+
+export default class MessageWriter {
+  private readonly sizeBuffer = new Uint8Array(SIZE_BYTES)
+  private readonly batchMetadata: Messages.BatchMetadata
+  private encoder: MessageEncoder
+  private _isEmpty = true
+  constructor(
+    bufferSize: number,
+  ) {
+    this.encoder = new MessageEncoder(bufferSize)
+  }
+
+  private writeType(m: Message): boolean {
+    return this.encoder.uint(m[0])
+  }
+  private writeFields(m: Message): boolean {
+    return this.encoder.encode(m)
+  }
+  private writeSizeAt(size: number, offset: number): void {
+    //boolean?
+    for (let i = 0; i < SIZE_BYTES; i++) {
+      this.sizeBuffer[i] = size >> (i * 8) // BigEndian
+    }
+    this.encoder.set(this.sizeBuffer, offset)
+  }
+
+  private _writeBatchMeta(batchMetadata: Messages.BatchMetadata): boolean {
+    if (!this.encoder.isEmpty) {
+      return false
+    }
+    this.writeType(batchMetadata)
+    this.writeFields(batchMetadata)
+    return true
+  }
+  writeBatchMeta(batchMetadata: Messages.BatchMetadata) {
+    return this._isEmpty = this._writeBatchMeta(batchMetadata)
+  }
+
+  get isEmpty() {
+    return this._isEmpty
+  }
+
+  writeMessage(message: Message): boolean {
+    const e = this.encoder
+    if (!this.writeType(message) || !e.skip(SIZE_BYTES)) {
+      // app.debug.log
+      return false
+    }
+    const startOffset = e.getCurrentOffset()
+    const wasWritten = this.writeFields(message)
+    if (wasWritten) {
+      const endOffset = e.getCurrentOffset()
+      const size = endOffset - startOffset
+      if (size > MAX_M_SIZE) {
+        console.warn('OpenReplay: max message size overflow.')
+        return false
+      }
+      this.writeSizeAt(size, startOffset - SIZE_BYTES)
+      e.checkpoint()
+
+      this._isEmpty = this._isEmpty && message[0] === Messages.Type.Timestamp
+      this.nextIndex++
+    }
+    // app.debug.log
+    return wasWritten
+  }
+
+  writeMessageInSeparateBuffer(message: Message, bufferSize: number) {
+    const encoder = new MessageEncoder(bufferSize)
+    encoder.writeType(batchMetadata)
+    encoder.writeFields(batchMetadata)
+  }
+
+}
