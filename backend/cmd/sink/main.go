@@ -128,6 +128,27 @@ func main() {
 			counter.Update(msg.SessionID(), time.UnixMilli(ts))
 		}
 
+		// TODO: remove after next frontend release (1.10.0)
+		if msg.TypeID() == messages.MsgNetworkRequest {
+			fetchMsg := msg.Decode()
+			switch m := fetchMsg.(type) {
+			case *messages.NetworkRequest:
+				if m.Type == "fetch" {
+					fetchMsg = &messages.Fetch{
+						Method:    m.Method,
+						URL:       m.URL,
+						Request:   m.Request,
+						Response:  m.Response,
+						Status:    m.Status,
+						Timestamp: m.Timestamp,
+						Duration:  m.Duration,
+					}
+					fetchMsg.Meta().SetMeta(msg.Meta())
+					msg = fetchMsg
+				}
+			}
+		}
+
 		// Try to encode message to avoid null data inserts
 		data := msg.Encode()
 		if data == nil {
