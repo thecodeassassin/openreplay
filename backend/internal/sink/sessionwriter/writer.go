@@ -7,6 +7,12 @@ import (
 	"time"
 )
 
+type Task struct {
+	sessID uint64
+	domBuf []byte
+	devBuf []byte
+}
+
 type SessionWriter struct {
 	filesLimit  int
 	workingDir  string
@@ -15,7 +21,9 @@ type SessionWriter struct {
 	meta        *Meta
 	sessions    *sync.Map
 	done        chan struct{}
+	finished    chan struct{}
 	stopped     chan struct{}
+	tasks       chan *Task
 }
 
 func NewWriter(filesLimit uint16, workingDir string, fileBuffer int, syncTimeout int) *SessionWriter {
@@ -27,13 +35,25 @@ func NewWriter(filesLimit uint16, workingDir string, fileBuffer int, syncTimeout
 		meta:        NewMeta(int(filesLimit)),
 		sessions:    &sync.Map{},
 		done:        make(chan struct{}),
+		finished:    make(chan struct{}),
 		stopped:     make(chan struct{}),
+		tasks:       make(chan *Task, 5), // test value
 	}
+	go w.writer()
 	go w.synchronizer()
 	return w
 }
 
 func (w *SessionWriter) Write(sid uint64, domBuffer, devBuffer []byte) (err error) {
+	w.tasks <- &Task{
+		sessID: sid,
+		domBuf: domBuffer,
+		devBuf: devBuffer,
+	}
+	return nil
+}
+
+func (w *SessionWriter) write(sid uint64, domBuffer, devBuffer []byte) (err error) {
 	var sess *Session
 
 	// Load session
@@ -85,6 +105,7 @@ func (w *SessionWriter) Close(sid uint64) error {
 
 func (w *SessionWriter) Stop() {
 	w.done <- struct{}{}
+	close(w.tasks)
 	<-w.stopped
 }
 
@@ -101,13 +122,33 @@ func (w *SessionWriter) Sync() {
 	})
 }
 
+func (w *SessionWriter) writer() {
+	for {
+		select {
+		case t := <-w.tasks:
+			if err := w.write(t.sessID, t.domBuf, t.devBuf); err != nil {
+				log.Printf("session write err: %s", err)
+			}
+		case <-w.done:
+			for t := range w.tasks {
+				if err := w.write(t.sessID, t.domBuf, t.devBuf); err != nil {
+					log.Printf("session write err: %s", err)
+				}
+			}
+			log.Printf("writer have written all buffers from tasks queue")
+			w.finished <- struct{}{}
+			return
+		}
+	}
+}
+
 func (w *SessionWriter) synchronizer() {
 	tick := time.Tick(w.syncTimeout)
 	for {
 		select {
 		case <-tick:
 			w.Sync()
-		case <-w.done:
+		case <-w.finished: // writer have written all buffers from tasks queue, can do final sync
 			w.sessions.Range(func(sid, lockObj any) bool {
 				if err := w.Close(sid.(uint64)); err != nil {
 					log.Printf("can't close file descriptor: %s", err)
