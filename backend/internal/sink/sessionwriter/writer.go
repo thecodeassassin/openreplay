@@ -104,7 +104,6 @@ func (w *SessionWriter) Close(sid uint64) error {
 }
 
 func (w *SessionWriter) Stop() {
-	close(w.tasks)
 	w.done <- struct{}{}
 	<-w.stopped
 }
