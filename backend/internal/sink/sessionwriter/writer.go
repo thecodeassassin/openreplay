@@ -104,8 +104,8 @@ func (w *SessionWriter) Close(sid uint64) error {
 }
 
 func (w *SessionWriter) Stop() {
-	w.done <- struct{}{}
 	close(w.tasks)
+	w.done <- struct{}{}
 	<-w.stopped
 }
 
@@ -155,6 +155,7 @@ func (w *SessionWriter) synchronizer() {
 				}
 				return true
 			})
+			log.Printf("syncer have flushed and closed all files")
 			w.stopped <- struct{}{}
 			return
 		}
