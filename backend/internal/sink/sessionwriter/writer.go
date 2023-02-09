@@ -37,7 +37,7 @@ func NewWriter(filesLimit uint16, workingDir string, fileBuffer int, syncTimeout
 		done:        make(chan struct{}),
 		finished:    make(chan struct{}),
 		stopped:     make(chan struct{}),
-		tasks:       make(chan *Task, 5), // test value
+		tasks:       make(chan *Task),
 	}
 	go w.writer()
 	go w.synchronizer()
