@@ -237,6 +237,11 @@ export default class API {
     return this.app.getSessionURL(options)
   }
 
+  getFeatureFlags() {
+    if (this.app === null) return undefined
+    return this.app.getFeatureFlags()
+  }
+
   setUserID(id: string): void {
     if (typeof id === 'string' && this.app !== null) {
       this.app.session.setUserID(id)

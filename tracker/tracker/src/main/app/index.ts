@@ -115,6 +115,7 @@ export default class App {
   private activityState: ActivityState = ActivityState.NotActive
   private readonly version = 'TRACKER_VERSION' // TODO: version compatability check inside each plugin.
   private readonly worker?: TypedWorker
+  private featureFlags: Record<string, boolean> = {}
   private compressionThreshold = 24 * 1000
   private restartAttempts = 0
   private readonly bc: BroadcastChannel = new BroadcastChannel('rick')
@@ -411,6 +412,10 @@ export default class App {
     return url
   }
 
+  getFeatureFlags() {
+    return this.featureFlags
+  }
+
   getHost(): string {
     return new URL(this.options.ingestPoint).host
   }
@@ -583,7 +588,7 @@ export default class App {
         this.compressionThreshold = compressionThreshold
 
         const onStartInfo = { sessionToken: token, userUUID, sessionID }
-
+        this.featureFlags = { test: true }
         // TODO: start as early as possible (before receiving the token)
         this.startCallbacks.forEach((cb) => cb(onStartInfo)) // MBTODO: callbacks after DOM "mounted" (observed)
         this.observer.observe()
