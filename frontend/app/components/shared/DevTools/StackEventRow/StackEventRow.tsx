@@ -3,6 +3,7 @@ import JumpButton from '../JumpButton';
 import { Icon } from 'UI';
 import cn from 'classnames';
 import { OPENREPLAY } from 'Types/session/stackEvent';
+import { Duration } from 'luxon';
 
 interface Props {
   event: any;
@@ -33,10 +34,12 @@ function StackEventRow(props: Props) {
       className={cn(
         'group flex items-center py-2 px-4 border-b cursor-pointer relative',
         'hover:bg-active-blue',
+        { 'error color-red': event.isRed },
         { 'bg-teal-light': isActive }
       )}
     >
       <div className={cn('mr-auto flex items-start')}>
+      <div className="self-start pr-4 color-gray-medium"><span>{Duration.fromMillis(event.time).toFormat('mm:ss.SS')}</span></div>
         <Icon {...iconProps} />
         <div>
           <div className="capitalize font-medium mb-1">{event.name}</div>
