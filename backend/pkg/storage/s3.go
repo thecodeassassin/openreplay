@@ -58,7 +58,7 @@ func (s3 *S3) Upload(reader io.Reader, key string, contentType string, compressi
 		ContentType:     &contentType,
 		CacheControl:    &cacheControl,
 		ContentEncoding: contentEncoding,
-		Tagging:         &s3.fileTag,
+		//Tagging:         &s3.fileTag,
 	})
 	return err
 }
