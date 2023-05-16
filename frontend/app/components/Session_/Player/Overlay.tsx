@@ -13,12 +13,12 @@ interface Props {
 }
 
 function Overlay({
-  nextId,
-  isClickmap,
-}: Props) {
-  const { player, store } = React.useContext(PlayerContext)
+                   nextId,
+                   isClickmap
+                 }: Props) {
+  const { player, store } = React.useContext(PlayerContext);
 
-  const togglePlay = () => player.togglePlay()
+  const togglePlay = () => player.togglePlay();
   const {
     playing,
     messagesLoading,
@@ -27,16 +27,16 @@ function Overlay({
     autoplay,
     inspectorMode,
     markedTargets,
-    activeTargetIndex,
-  } = store.get()
-  const loading = messagesLoading || cssLoading
+    activeTargetIndex
+  } = store.get();
+  const loading = messagesLoading || cssLoading;
 
-  const showAutoplayTimer = completed && autoplay && nextId
-  const showPlayIconLayer = !isClickmap && !markedTargets && !inspectorMode && !loading && !showAutoplayTimer;
+  // const showAutoplayTimer = completed && autoplay;
+  const showPlayIconLayer = !isClickmap && !markedTargets && !inspectorMode && !loading && !completed;
 
   return (
     <>
-      {showAutoplayTimer && <AutoplayTimer />}
+      {completed && <AutoplayTimer />}
       {loading ? <Loader /> : null}
       {showPlayIconLayer && <PlayIconLayer playing={playing} togglePlay={togglePlay} />}
       {markedTargets && <ElementsMarker targets={markedTargets} activeIndex={activeTargetIndex} />}
