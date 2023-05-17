@@ -2,6 +2,7 @@ import APIClient from 'App/api_client';
 import { ISession } from 'Types/session/session';
 import { IErrorStack } from 'Types/session/errorStack';
 import { clean as cleanParams } from 'App/api_client';
+import { Feedback } from 'Shared/SessionFeedback';
 
 export default class SettingsService {
   private client: APIClient;
@@ -30,7 +31,7 @@ export default class SettingsService {
       .post('/sessions/search', filter)
       .then(r => r.json())
       .then((response) => response.data || [])
-      .catch(e => Promise.reject(e))
+      .catch(e => Promise.reject(e));
   }
 
   getSessionInfo(sessionId: string, isLive?: boolean): Promise<ISession> {
@@ -46,7 +47,7 @@ export default class SettingsService {
       .post('/assist/sessions', cleanParams(filter))
       .then(r => r.json())
       .then((response) => response.data || [])
-      .catch(e => Promise.reject(e))
+      .catch(e => Promise.reject(e));
   }
 
   getErrorStack(sessionId: string, errorId: string): Promise<{ trace: IErrorStack[] }> {
@@ -54,7 +55,7 @@ export default class SettingsService {
       .get(`/sessions/${sessionId}/errors/${errorId}/sourcemaps`)
       .then(r => r.json())
       .then(j => j.data || {})
-      .catch(e => Promise.reject(e))
+      .catch(e => Promise.reject(e));
   }
 
   getAutoplayList(params = {}): Promise<{ sessionId: string }[]> {
@@ -62,13 +63,13 @@ export default class SettingsService {
       .post('/sessions/search/ids', cleanParams(params))
       .then(r => r.json())
       .then(j => j.data || [])
-      .catch(e => Promise.reject(e))
+      .catch(e => Promise.reject(e));
   }
 
   toggleFavorite(sessionId: string): Promise<any> {
     return this.client
       .get(`/sessions/${sessionId}/favorite`)
-      .catch(Promise.reject)
+      .catch(Promise.reject);
   }
 
   getClickMap(params = {}): Promise<any[]> {
@@ -76,6 +77,14 @@ export default class SettingsService {
       .post('/heatmaps/url', params)
       .then(r => r.json())
       .then(j => j.data || [])
-      .catch(Promise.reject)
+      .catch(Promise.reject);
+  }
+
+  sendFeedback(data: Feedback): Promise<any> {
+    return this.client
+      .post(`/session-recommendations`, data)
+      .then(r => r.json())
+      .then(j => j.data || [])
+      .catch(Promise.reject);
   }
 }

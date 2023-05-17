@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import cn from 'classnames';
 import { connect } from 'react-redux';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 import { Button, Link } from 'UI';
@@ -10,35 +9,62 @@ import AutoplayToggle from 'Shared/AutoplayToggle';
 import SessionFeedback from 'Shared/SessionFeedback';
 import { Divider } from 'antd';
 import { PlayerContext } from 'Components/Session/playerContext';
+import cn from 'classnames';
+
+
+interface CountdownProps {
+  initialCounter: number;
+  paused: boolean;
+  onComplete: () => void;
+}
+
+const Countdown: React.FC<CountdownProps> = ({ initialCounter, paused, onComplete }) => {
+  const [counter, setCounter] = useState(initialCounter);
+
+  useEffect(() => {
+    let timer: NodeJS.Timer;
+
+    if (!paused && counter > 0) {
+      timer = setTimeout(() => {
+        setCounter(counter - 1);
+      }, 1000);
+    } else if (!paused && counter === 0) {
+      onComplete();
+    }
+
+    return () => clearTimeout(timer);
+  }, [counter, onComplete, paused]);
+
+  return (
+    <div className='mb-5'>
+      {paused ? (
+        <span className='font-medium'>Autoplaying paused for this moment.</span>
+      ) : (
+        <>
+          Autoplaying next session in <span className='font-medium'>{counter}</span> seconds
+        </>
+      )}
+    </div>
+  );
+};
 
 interface IProps extends RouteComponentProps {
   nextId: number;
   siteId: string;
+  sessionId: string;
 }
 
-function AutoplayTimer({ nextId, siteId, history }: IProps) {
-  let timer: NodeJS.Timer;
+function AutoplayTimer({ sessionId, nextId, siteId, history }: IProps) {
   const [cancelled, setCancelled] = useState(false);
-  const [counter, setCounter] = useState(5);
+  const [paused, setPaused] = useState(false);
   const { store } = React.useContext(PlayerContext);
   const { autoplay } = store.get();
 
-  useEffect(() => {
-    if (counter > 0) {
-      timer = setTimeout(() => {
-        setCounter(counter - 1);
-      }, 1000);
-    }
-
-    if (counter === 0) {
-      history.push(withSiteId(sessionRoute(nextId), siteId));
-    }
-
-    return () => clearTimeout(timer);
-  }, [counter]);
+  const handleCountdownComplete = () => {
+    history.push(withSiteId(sessionRoute(nextId), siteId));
+  };
 
   const cancel = () => {
-    clearTimeout(timer);
     setCancelled(true);
   };
 
@@ -47,14 +73,13 @@ function AutoplayTimer({ nextId, siteId, history }: IProps) {
   return (
     <div className={cn(clsOv.overlay, stl.overlayBg)}>
       <div className='border p-5 shadow-lg bg-white rounded' style={{ width: '430px' }}>
-        <SessionFeedback sessionId={'test'} />
+        <SessionFeedback sessionId={sessionId} onChanged={() => setPaused(true)} />
 
         {!!nextId && autoplay && (
           <>
             <Divider />
-            <div className='mb-5'>
-              Autoplaying next session in <span className='font-medium'>{counter}</span> seconds
-            </div>
+
+            <Countdown initialCounter={5} onComplete={handleCountdownComplete} paused={paused} />
 
             <div className='flex items-center justify-between'>
               <div className='mr-10'>
@@ -79,6 +104,7 @@ function AutoplayTimer({ nextId, siteId, history }: IProps) {
 
 export default withRouter(
   connect((state: any) => ({
+    sessionId: state.getIn(['sessions', 'current']).sessionId,
     siteId: state.getIn(['site', 'siteId']),
     nextId: parseInt(state.getIn(['sessions', 'nextId']))
   }))(AutoplayTimer)
