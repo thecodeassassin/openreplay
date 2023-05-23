@@ -7,7 +7,7 @@ import Logger from 'App/logger'
 
 // TODO: composition instead of inheritance
 // needSkipMessage() and next() methods here use buf and p protected properties,
-// which should be probably somehow incapsulated
+// which should be probably somehow encapsulated
 export default class MFileReader extends RawMessageReader {
   private pLastMessageID: number = 0
   private currentTime: number

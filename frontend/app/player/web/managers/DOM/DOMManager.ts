@@ -51,6 +51,7 @@ export default class DOMManager extends ListWalker<Message> {
     private stringDict: Record<number,string>,
     public readonly time: number,
     setCssLoading: ConstructorParameters<typeof StylesManager>[1],
+    private readonly allStringDicts: Record<number, string>[],
   ) {
     super()
     this.selectionManager = new SelectionManager(this.vElements, screen)
@@ -235,9 +236,35 @@ export default class DOMManager extends ListWalker<Message> {
         this.setNodeAttribute(msg)
         return
       case MType.SetNodeAttributeDict:
-        this.stringDict[msg.nameKey] === undefined && logger.error("No dictionary key for msg 'name': ", msg, this.stringDict)
-        this.stringDict[msg.valueKey] === undefined && logger.error("No dictionary key for msg 'value': ", msg, this.stringDict)
-        if (this.stringDict[msg.nameKey] === undefined || this.stringDict[msg.valueKey] === undefined ) { return }
+        if (this.stringDict[msg.nameKey] === undefined) {
+          let found = false
+          this.allStringDicts.forEach(dict => {
+            if (dict[msg.nameKey] !== undefined) {
+              this.stringDict[msg.nameKey] = dict[msg.nameKey]
+              found = true
+              logger.warn('Using dictionary from other page for msg.nameKey', msg)
+            }
+          })
+          if (!found) {
+            logger.error("No dictionary key for msg 'name': ", msg)
+            return;
+          }
+        }
+        if (this.stringDict[msg.valueKey] === undefined) {
+          let found = false
+          this.allStringDicts.forEach(dict => {
+            if (dict[msg.valueKey] !== undefined) {
+              this.stringDict[msg.valueKey] = dict[msg.valueKey]
+              found = true
+              logger.warn('Using dictionary from other page for msg.valueKey', msg)
+            }
+          })
+          if (!found) {
+            logger.error("No dictionary key for msg 'value': ", msg)
+            return;
+          }
+        }
+
         this.setNodeAttribute({
           id: msg.id,
           name: this.stringDict[msg.nameKey],

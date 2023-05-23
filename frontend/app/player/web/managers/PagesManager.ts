@@ -42,7 +42,7 @@ export default class PagesManager extends ListWalker<DOMManager> {
 			if (!this.falseOrder) {
 				this.stringDicts.unshift({})
 			}
-			super.append(new DOMManager(this.screen, this.isMobile, this.stringDicts[0], m.time, this.setCssLoading))
+			super.append(new DOMManager(this.screen, this.isMobile, this.stringDicts[0], m.time, this.setCssLoading, this.stringDicts))
 			this.falseOrder = false
 		}
 		if (this.last === null) {
