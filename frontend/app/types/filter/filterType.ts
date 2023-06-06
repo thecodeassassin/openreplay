@@ -56,6 +56,8 @@ export const setQueryParamKeyFromFilterkey = (filterKey: string) => {
       return 'amem';
     case FilterKey.FETCH_FAILED:
       return 'ff';
+    case FilterKey.DURATION:
+      return 'duration';
   }
 };
 
@@ -131,6 +133,8 @@ export const getFilterKeyTypeByKey = (key: string) => {
     case 'ff':
     case 'fetchFailed':
       return FilterKey.FETCH_FAILED;
+    case 'duration':
+      return FilterKey.DURATION;
   }
 };
 
