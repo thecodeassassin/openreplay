@@ -133,11 +133,11 @@ class Router extends React.Component {
     const urlJWT = new URLSearchParams(window.location.search).get('jwt');
 
     if (urlJWT && !props.isLoggedIn) {
-      props.setJwt(urlJWT)
+      props.setJwt(urlJWT);
     }
 
     this.state = {
-      isIframe: this.checkIframe(),
+      isIframe: this.checkIframe()
     };
   }
 
@@ -164,13 +164,8 @@ class Router extends React.Component {
 
   componentDidMount() {
     const { isLoggedIn, location } = this.props;
-    const destinationPath = localStorage.getItem(GLOBAL_DESTINATION_PATH);
-
-    if (!isLoggedIn && !location.pathname.includes('login')) {
+    if (!location.pathname.includes('login')) {
       localStorage.setItem(GLOBAL_DESTINATION_PATH, location.pathname);
-    } else if (isLoggedIn && destinationPath && !location.pathname.includes(destinationPath)) {
-      this.props.history.push(destinationPath || '/');
-      localStorage.removeItem(GLOBAL_DESTINATION_PATH);
     }
   }
 
@@ -194,6 +189,7 @@ class Router extends React.Component {
 
     if (!prevProps.isLoggedIn && this.props.isLoggedIn) {
       this.fetchInitialData();
+      localStorage.removeItem(GLOBAL_DESTINATION_PATH);
     }
   }
 
