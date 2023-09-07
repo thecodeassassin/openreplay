@@ -97,7 +97,8 @@ func main() {
 			os.Exit(0)
 		case <-tick:
 			// Send collected sessionEnd messages
-			for msg := range endEvents {
+			for len(endEvents) > 0 {
+				msg := <-endEvents
 				if err := producer.Produce(cfg.TopicRawWeb, msg.SessionID(), msg.Encode()); err != nil {
 					log.Printf("can't send sessionEnd to topic: %s; sessID: %d", err, msg.SessionID())
 				}
