@@ -76,6 +76,9 @@ func main() {
 		return
 	}
 
+	// Local queue for sessionEnd messages (to avoid insert to CH not updated sessions)
+	endEvents := make(chan messages.Message, 100000)
+
 	log.Printf("Ender service started\n")
 
 	sigchan := make(chan os.Signal, 1)
@@ -93,6 +96,12 @@ func main() {
 			consumer.Close()
 			os.Exit(0)
 		case <-tick:
+			// Send collected sessionEnd messages
+			for msg := range endEvents {
+				if err := producer.Produce(cfg.TopicRawWeb, msg.SessionID(), msg.Encode()); err != nil {
+					log.Printf("can't send sessionEnd to topic: %s; sessID: %d", err, msg.SessionID())
+				}
+			}
 			failedSessionEnds := make(map[uint64]uint64)
 			duplicatedSessionEnds := make(map[uint64]uint64)
 			negativeDuration := make(map[uint64]uint64)
@@ -116,6 +125,7 @@ func main() {
 			// Find ended sessions and send notification to other services
 			sessionEndGenerator.HandleEndedSessions(func(sessionID uint64, timestamp uint64) (bool, int) {
 				msg := &messages.SessionEnd{Timestamp: timestamp}
+				msg.SetSessionID(sessionID)
 				currDuration, err := sessManager.GetDuration(sessionID)
 				if err != nil {
 					log.Printf("getSessionDuration failed, sessID: %d, err: %s", sessionID, err)
@@ -168,10 +178,9 @@ func main() {
 						}
 					}
 				}
-				if err := producer.Produce(cfg.TopicRawWeb, sessionID, msg.Encode()); err != nil {
-					log.Printf("can't send sessionEnd to topic: %s; sessID: %d", err, sessionID)
-					return false, 0
-				}
+				// Save session to local queue to send them in 10 seconds (next tick)
+				endEvents <- msg
+
 				if currDuration != 0 {
 					diffDuration[sessionID] = int64(newDuration) - int64(currDuration)
 					updatedDurations++
