@@ -197,7 +197,7 @@ const socketsLiveByProject = async function (req, res) {
 const autocomplete = async function (req, res) {
     debug && console.log("[WS]autocomplete");
     let _projectKey = extractProjectKeyFromRequest(req);
-    let filters = await extractPayloadFromRequest(req, res);
+    let filters = await extractPayloadFromRequest(req);
     let results = [];
     if (filters.query && Object.keys(filters.query).length > 0) {
         let rooms = await getAvailableRooms(io);
@@ -234,7 +234,7 @@ const findSessionSocketId = async (io, roomId, tabId) => {
 async function sessions_agents_count(io, socket) {
     let c_sessions = 0, c_agents = 0;
     const rooms = await getAvailableRooms(io);
-    if (rooms.get(socket.roomId)) {
+    if (rooms.has(socket.roomId)) {
         const connected_sockets = await io.in(socket.roomId).fetchSockets();
 
         for (let item of connected_sockets) {
@@ -254,7 +254,7 @@ async function sessions_agents_count(io, socket) {
 async function get_all_agents_ids(io, socket) {
     let agents = [];
     const rooms = await getAvailableRooms(io);
-    if (rooms.get(socket.roomId)) {
+    if (rooms.has(socket.roomId)) {
         const connected_sockets = await io.in(socket.roomId).fetchSockets();
         for (let item of connected_sockets) {
             if (item.handshake.query.identity === IDENTITIES.agent) {
@@ -330,7 +330,7 @@ module.exports = {
             }
             await socket.join(socket.roomId);
             const rooms = await getAvailableRooms(io);
-            if (rooms.get(socket.roomId)) {
+            if (rooms.has(socket.roomId)) {
                 debug && console.log(`${socket.id} joined room:${socket.roomId}, as:${socket.identity}, members:${rooms.get(socket.roomId).size}`);
             }
             if (socket.identity === IDENTITIES.agent) {

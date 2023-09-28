@@ -92,12 +92,12 @@ const socketsList = async function (req, res) {
     let withFilters = hasFilters(filters);
     let liveSessionsPerProject = {};
     let rooms = await getAvailableRooms(io);
-    for (let peerId of rooms.keys()) {
-        let {projectKey, sessionId} = extractPeerId(peerId);
+    for (let roomId of rooms.keys()) {
+        let {projectKey, sessionId} = extractPeerId(roomId);
         if (projectKey !== undefined) {
             liveSessionsPerProject[projectKey] = liveSessionsPerProject[projectKey] || new Set();
             if (withFilters) {
-                const connected_sockets = await io.in(peerId).fetchSockets();
+                const connected_sockets = await io.in(roomId).fetchSockets();
                 for (let item of connected_sockets) {
                     if (item.handshake.query.identity === IDENTITIES.session && item.handshake.query.sessionInfo
                         && isValidSession(item.handshake.query.sessionInfo, filters.filter)) {
@@ -124,11 +124,11 @@ const socketsListByProject = async function (req, res) {
     let withFilters = hasFilters(filters);
     let liveSessions = new Set();
     let rooms = await getAvailableRooms(io);
-    for (let peerId of rooms.keys()) {
-        let {projectKey, sessionId} = extractPeerId(peerId);
+    for (let roomId of rooms.keys()) {
+        let {projectKey, sessionId} = extractPeerId(roomId);
         if (projectKey === _projectKey && (_sessionId === undefined || _sessionId === sessionId)) {
             if (withFilters) {
-                const connected_sockets = await io.in(peerId).fetchSockets();
+                const connected_sockets = await io.in(roomId).fetchSockets();
                 for (let item of connected_sockets) {
                     if (item.handshake.query.identity === IDENTITIES.session && item.handshake.query.sessionInfo
                         && isValidSession(item.handshake.query.sessionInfo, filters.filter)) {
@@ -153,10 +153,10 @@ const socketsLive = async function (req, res) {
     let liveSessionsPerProject = {};
     const sessIDs = new Set();
     let rooms = await getAvailableRooms(io);
-    for (let peerId of rooms.keys()) {
-        let {projectKey} = extractPeerId(peerId);
+    for (let roomId of rooms.keys()) {
+        let {projectKey} = extractPeerId(roomId);
         if (projectKey !== undefined) {
-            let connected_sockets = await io.in(peerId).fetchSockets();
+            let connected_sockets = await io.in(roomId).fetchSockets();
             for (let item of connected_sockets) {
                 if (item.handshake.query.identity === IDENTITIES.session) {
                     liveSessionsPerProject[projectKey] = liveSessionsPerProject[projectKey] || new Set();
@@ -176,8 +176,6 @@ const socketsLive = async function (req, res) {
                     }
                 }
             }
-            // Should be already unique
-            // liveSessionsPerProject[projectKey] = uniqueSessions(liveSessionsPerProject[projectKey]);
         }
     }
     let liveSessions = {};
@@ -196,10 +194,10 @@ const socketsLiveByProject = async function (req, res) {
     let liveSessions = new Set();
     const sessIDs = new Set();
     let rooms = await getAvailableRooms(io);
-    for (let peerId of rooms.keys()) {
-        let {projectKey, sessionId} = extractPeerId(peerId);
+    for (let roomId of rooms.keys()) {
+        let {projectKey, sessionId} = extractPeerId(roomId);
         if (projectKey === _projectKey && (_sessionId === undefined || _sessionId === sessionId)) {
-            let connected_sockets = await io.in(peerId).fetchSockets();
+            let connected_sockets = await io.in(roomId).fetchSockets();
             for (let item of connected_sockets) {
                 if (item.handshake.query.identity === IDENTITIES.session) {
                     if (withFilters) {
@@ -218,8 +216,6 @@ const socketsLiveByProject = async function (req, res) {
                     }
                 }
             }
-            // Should be unique already because of using sessIDs set
-            // liveSessions[projectKey] = uniqueSessions(liveSessions[projectKey] || []);
         }
     }
     let sessions = Array.from(liveSessions);
@@ -233,10 +229,10 @@ const autocomplete = async function (req, res) {
     let results = [];
     if (filters.query && Object.keys(filters.query).length > 0) {
         let rooms = await getAvailableRooms(io);
-        for (let peerId of rooms.keys()) {
-            let {projectKey} = extractPeerId(peerId);
+        for (let roomId of rooms.keys()) {
+            let {projectKey} = extractPeerId(roomId);
             if (projectKey === _projectKey) {
-                let connected_sockets = await io.in(peerId).fetchSockets();
+                let connected_sockets = await io.in(roomId).fetchSockets();
                 for (let item of connected_sockets) {
                     if (item.handshake.query.identity === IDENTITIES.session && item.handshake.query.sessionInfo) {
                         results = [...results, ...getValidAttributes(item.handshake.query.sessionInfo, filters.query)];
@@ -433,7 +429,6 @@ module.exports = {
                 }
                 if (socket.identity === IDENTITIES.session) {
                     debug && console.log(`received event:${eventName}, from:${socket.identity}, sending message to room:${socket.roomId}`);
-                    // TODO: send to all agents in the room
                     socket.to(socket.roomId).emit(eventName, args[0]);
                 } else {
                     debug && console.log(`received event:${eventName}, from:${socket.identity}, sending message to session of room:${socket.roomId}`);
@@ -447,7 +442,6 @@ module.exports = {
                     }
                 }
             });
-
         });
         console.log("WS server started");
         setInterval(async (io) => {
