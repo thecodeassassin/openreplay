@@ -3,16 +3,18 @@ const express = require('express');
 const {
     extractRoomId,
     extractPeerId,
-    extractProjectKeyFromRequest,
-    extractSessionIdFromRequest,
     hasFilters,
     isValidSession,
-    extractPayloadFromRequest,
     sortPaginate,
     getValidAttributes,
-    uniqueAutocomplete,
-    getAvailableRooms,
-    getCompressionConfig
+    uniqueAutocomplete
+} = require('../utils/helper');
+const {
+    extractProjectKeyFromRequest,
+    extractSessionIdFromRequest,
+    extractPayloadFromRequest,
+    getCompressionConfig,
+    getAvailableRooms
 } = require('../utils/helper');
 const {
     IDENTITIES,
@@ -22,6 +24,7 @@ const {
     errorHandler,
     authorizer
 } = require('../utils/assistHelper');
+
 const wsRouter = express.Router();
 
 let io;
@@ -47,7 +50,7 @@ const respond = function (res, data) {
 
 const socketsList = async function (req, res) {
     debug && console.log("[WS]looking for all available sessions");
-    let filters = await extractPayloadFromRequest(req);
+    let filters = await extractPayloadFromRequest(req, res);
     let withFilters = hasFilters(filters);
     let liveSessionsPerProject = {};
     let rooms = await getAvailableRooms(io);
@@ -79,7 +82,7 @@ const socketsListByProject = async function (req, res) {
     debug && console.log("[WS]looking for available sessions");
     let _projectKey = extractProjectKeyFromRequest(req);
     let _sessionId = extractSessionIdFromRequest(req);
-    let filters = await extractPayloadFromRequest(req);
+    let filters = await extractPayloadFromRequest(req, res);
     let withFilters = hasFilters(filters);
     let liveSessions = new Set();
     let rooms = await getAvailableRooms(io);
@@ -107,14 +110,14 @@ const socketsListByProject = async function (req, res) {
 
 const socketsLive = async function (req, res) {
     debug && console.log("[WS]looking for all available LIVE sessions");
-    let filters = await extractPayloadFromRequest(req);
+    let filters = await extractPayloadFromRequest(req, res);
     let withFilters = hasFilters(filters);
     let liveSessionsPerProject = {};
     let rooms = await getAvailableRooms(io);
-    for (let peerId of rooms.keys()) {
-        let {projectKey} = extractPeerId(peerId);
+    for (let roomId of rooms.keys()) {
+        let {projectKey} = extractPeerId(roomId);
         if (projectKey !== undefined) {
-            let connected_sockets = await io.in(peerId).fetchSockets();
+            let connected_sockets = await io.in(roomId).fetchSockets();
             for (let item of connected_sockets) {
                 if (item.handshake.query.identity === IDENTITIES.session) {
                     liveSessionsPerProject[projectKey] = liveSessionsPerProject[projectKey] || new Set();
@@ -140,7 +143,7 @@ const socketsLiveByProject = async function (req, res) {
     debug && console.log("[WS]looking for available LIVE sessions");
     let _projectKey = extractProjectKeyFromRequest(req);
     let _sessionId = extractSessionIdFromRequest(req);
-    let filters = await extractPayloadFromRequest(req);
+    let filters = await extractPayloadFromRequest(req, res);
     let withFilters = hasFilters(filters);
     let liveSessions = new Set();
     const sessIDs = new Set();
@@ -176,14 +179,14 @@ const socketsLiveByProject = async function (req, res) {
 const autocomplete = async function (req, res) {
     debug && console.log("[WS]autocomplete");
     let _projectKey = extractProjectKeyFromRequest(req);
-    let filters = await extractPayloadFromRequest(req);
+    let filters = await extractPayloadFromRequest(req, res);
     let results = [];
     if (filters.query && Object.keys(filters.query).length > 0) {
         let rooms = await getAvailableRooms(io);
-        for (let peerId of rooms.keys()) {
-            let {projectKey} = extractPeerId(peerId);
+        for (let roomId of rooms.keys()) {
+            let {projectKey} = extractPeerId(roomId);
             if (projectKey === _projectKey) {
-                let connected_sockets = await io.in(peerId).fetchSockets();
+                let connected_sockets = await io.in(roomId).fetchSockets();
                 for (let item of connected_sockets) {
                     if (item.handshake.query.identity === IDENTITIES.session && item.handshake.query.sessionInfo) {
                         results = [...results, ...getValidAttributes(item.handshake.query.sessionInfo, filters.query)];
@@ -271,6 +274,7 @@ module.exports = {
             let {projectKey: connProjectKey, sessionId: connSessionId, tabId:connTabId} = extractPeerId(socket.handshake.query.peerId);
             socket.peerId = socket.handshake.query.peerId;
             socket.roomId = extractRoomId(socket.peerId);
+            // Set default tabId for back compatibility
             connTabId = connTabId ?? (Math.random() + 1).toString(36).substring(2);
             socket.tabId = connTabId;
             socket.identity = socket.handshake.query.identity;
@@ -378,7 +382,6 @@ module.exports = {
                 }
                 if (socket.identity === IDENTITIES.session) {
                     debug && console.log(`received event:${eventName}, from:${socket.identity}, sending message to room:${socket.roomId}`);
-                    // TODO: emit message to all agents in the room (except tabs)
                     socket.to(socket.roomId).emit(eventName, args[0]);
                 } else {
                     debug && console.log(`received event:${eventName}, from:${socket.identity}, sending message to session of room:${socket.roomId}`);
@@ -392,7 +395,6 @@ module.exports = {
                     }
                 }
             });
-
         });
         console.log("WS server started");
         setInterval(async (io) => {
@@ -403,7 +405,7 @@ module.exports = {
                 const arr = Array.from(rooms);
                 const filtered = arr.filter(room => !room[1].has(room[0]));
                 for (let i of filtered) {
-                    let {projectKey, sessionId, tabId} = extractPeerId(i[0]);
+                    let {projectKey, sessionId} = extractPeerId(i[0]);
                     if (projectKey !== null && sessionId !== null) {
                         count++;
                     }
@@ -425,6 +427,7 @@ module.exports = {
         socketsList,
         socketsListByProject,
         socketsLive,
-        socketsLiveByProject
+        socketsLiveByProject,
+        autocomplete
     }
 };

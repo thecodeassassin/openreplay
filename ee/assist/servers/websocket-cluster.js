@@ -10,6 +10,13 @@ const {
     uniqueAutocomplete
 } = require('../utils/helper');
 const {
+    extractProjectKeyFromRequest,
+    extractSessionIdFromRequest,
+    extractPayloadFromRequest,
+    getCompressionConfig,
+    getAvailableRooms
+} = require('../utils/helper-ee');
+const {
     IDENTITIES,
     EVENTS_DEFINITION,
     extractSessionInfo,
@@ -17,16 +24,11 @@ const {
     errorHandler,
     authorizer
 } = require('../utils/assistHelper');
-const {
-    extractProjectKeyFromRequest,
-    extractSessionIdFromRequest,
-    extractPayloadFromRequest,
-    getCompressionConfig,
-    getAvailableRooms
-} = require('../utils/helper-ee');
+
+const wsRouter = express.Router();
+
 const {createAdapter} = require("@socket.io/redis-adapter");
 const {createClient} = require("redis");
-const wsRouter = express.Router();
 const REDIS_URL = (process.env.REDIS_URL || "localhost:6379").replace(/((^\w+:|^)\/\/|^)/, 'redis://');
 const pubClient = createClient({url: REDIS_URL});
 const subClient = pubClient.duplicate();
