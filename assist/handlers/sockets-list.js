@@ -15,6 +15,8 @@ const {
 const router = express.Router();
 const io = require("../servers/ioserver").io;
 
+const debug = process.env.debug === "1";
+
 const respond = function (res, data) {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
