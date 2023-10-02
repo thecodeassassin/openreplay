@@ -162,6 +162,8 @@ function check(socket, next) {
 }
 
 module.exports = {
+    isSession,
+    isAgent,
     extractSessionInfo,
     EVENTS_DEFINITION,
     IDENTITIES,
