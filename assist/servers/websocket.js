@@ -125,9 +125,9 @@ module.exports = {
             if (isAgent(socket.identity)) {
                 if (socket.handshake.query.agentInfo !== undefined) {
                     socket.handshake.query.agentInfo = JSON.parse(socket.handshake.query.agentInfo);
-                    socket.agentID = socket.handshake.query.agentInfo.agentID;
+                    socket.agentID = socket.handshake.query.agentInfo.id;
                     // TODO: debug log
-                    console.log(`agentID:${socket.agentID}, agentName:${socket.handshake.query.agentInfo.agentName}`)
+                    console.log(`agentID:${socket.agentID}, agentName:${socket.handshake.query.agentInfo.name}`)
                 }
                 socket.to(socket.roomId).emit(EVENTS_DEFINITION.emit.NEW_AGENT, socket.id, socket.handshake.query.agentInfo);
             }
