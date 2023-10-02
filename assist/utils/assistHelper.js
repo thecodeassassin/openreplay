@@ -5,6 +5,12 @@ const {extractPeerId} = require('./helper');
 
 let debug = process.env.debug === "1";
 const IDENTITIES = {agent: 'agent', session: 'session'};
+const isSession = (identity) => {
+    return identity === IDENTITIES.session;
+}
+const isAgent = (identity) => {
+    return identity === IDENTITIES.agent;
+}
 const EVENTS_DEFINITION = {
     listen: {
         UPDATE_EVENT: "UPDATE_SESSION",

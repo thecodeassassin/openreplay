@@ -21,7 +21,6 @@ const check_health = async function (req, res) {
     });
 }
 
-
 const healthApp = express();
 healthApp.use(express.json());
 healthApp.use(express.urlencoded({extended: true}));
@@ -40,13 +39,11 @@ healthApp.get('/shutdown', (req, res) => {
     }
 );
 
-const listen_cb = async function () {
-    console.log(`Health App listening on http://${HOST}:${PORT}`);
-    console.log('Press Ctrl+C to quit.');
-}
-
 module.exports = {
-    healthApp,
-    PORT,
-    listen_cb
+    launch: (host) => {
+        healthApp.listen(PORT, host, async () => {
+            console.log(`Health App listening on http://${host}:${PORT}`);
+            console.log('Press Ctrl+C to quit.');
+        });
+    },
 };

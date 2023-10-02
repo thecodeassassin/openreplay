@@ -1,3 +1,4 @@
+const {isValidSession} = require("./session");
 let PROJECT_KEY_LENGTH = parseInt(process.env.PROJECT_KEY_LENGTH) || 20;
 let debug = process.env.debug === "1" || false;
 const extractRoomId = (peerId) => {
@@ -55,40 +56,7 @@ const extractSessionIdFromRequest = function (req) {
     }
     return undefined;
 }
-const isValidSession = function (sessionInfo, filters) {
-    let foundAll = true;
-    for (const [key, body] of Object.entries(filters)) {
-        let found = false;
-        if (body.values !== undefined && body.values !== null) {
-            for (const [skey, svalue] of Object.entries(sessionInfo)) {
-                if (svalue !== undefined && svalue !== null) {
-                    if (typeof (svalue) === "object") {
-                        if (isValidSession(svalue, {[key]: body})) {
-                            found = true;
-                            break;
-                        }
-                    } else if (skey.toLowerCase() === key.toLowerCase()) {
-                        for (let v of body["values"]) {
-                            if (body.operator === "is" && String(svalue).toLowerCase() === v.toLowerCase()
-                                || body.operator !== "is" && String(svalue).toLowerCase().indexOf(v.toLowerCase()) >= 0) {
-                                found = true;
-                                break;
-                            }
-                        }
-                        if (found) {
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        foundAll = foundAll && found;
-        if (!found) {
-            break;
-        }
-    }
-    return foundAll;
-}
+
 const getValidAttributes = function (sessionInfo, query) {
     let matches = [];
     let deduplicate = [];
