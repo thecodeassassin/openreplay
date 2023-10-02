@@ -214,22 +214,22 @@ module.exports = {
 
                     switch (eventName) {
                         case "s_call_started":
-                            console.log(`s_call_started, agentID: ${args[0]}, sessID: ${socket.sessId}`);
+                            console.log(`s_call_started, agentID: ${args[0]}, sessID: ${socket.sessId}, time: ${+new Date()}`);
                             break;
                         case "s_call_ended":
-                            console.log(`s_call_ended, agentID: ${args[0]}, sessID: ${socket.sessId}`);
+                            console.log(`s_call_ended, agentID: ${args[0]}, sessID: ${socket.sessId}, time: ${+new Date()}`);
                             break;
                         case "s_control_started":
-                            console.log(`s_control_started, agentID: ${args[0]}, sessID: ${socket.sessId}`);
+                            console.log(`s_control_started, agentID: ${args[0]}, sessID: ${socket.sessId}, time: ${+new Date()}`);
                             break;
                         case "s_control_ended":
-                            console.log(`s_control_ended, agentID: ${args[0]}, sessID: ${socket.sessId}`);
+                            console.log(`s_control_ended, agentID: ${args[0]}, sessID: ${socket.sessId}, time: ${+new Date()}`);
                             break;
                         case "s_recording_started":
-                            console.log(`s_recording_started, agentID: ${args[0]}, sessID: ${socket.sessId}`);
+                            console.log(`s_recording_started, agentID: ${args[0]}, sessID: ${socket.sessId}, time: ${+new Date()}`);
                             break;
                         case "s_recording_ended":
-                            console.log(`s_recording_ended, agentID: ${args[0]}, sessID: ${socket.sessId}`);
+                            console.log(`s_recording_ended, agentID: ${args[0]}, sessID: ${socket.sessId}, time: ${+new Date()}`);
                             break;
                     }
 
