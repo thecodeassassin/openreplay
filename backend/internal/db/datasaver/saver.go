@@ -77,11 +77,10 @@ func (s *saverImpl) handleMessage(msg Message) error {
 		return s.pg.InsertWebJSException(m)
 	case *IntegrationEvent:
 		return s.pg.InsertWebIntegrationEvent(m)
-	// TODO: uncomment after issue resolved
-	//case *InputChange:
-	//	return s.pg.InsertWebInputDuration(m)
-	//case *MouseThrashing:
-	//	return s.pg.InsertMouseThrashing(m)
+	case *InputChange:
+		return s.pg.InsertWebInputDuration(m)
+	case *MouseThrashing:
+		return s.pg.InsertMouseThrashing(m)
 	case *IOSSessionStart:
 		return s.pg.InsertIOSSessionStart(m)
 	case *IOSSessionEnd:

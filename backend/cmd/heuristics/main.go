@@ -26,11 +26,11 @@ func main() {
 	// HandlersFabric returns the list of message handlers we want to be applied to each incoming message.
 	handlersFabric := func() []handlers.MessageProcessor {
 		return []handlers.MessageProcessor{
-			custom.NewInputEventBuilder(),
+			//custom.NewInputEventBuilder(),
 			custom.NewPageEventBuilder(),
-			//web.NewDeadClickDetector(),
-			//&web.ClickRageDetector{},
-			//&web.CpuIssueDetector{},
+			web.NewDeadClickDetector(),
+			&web.ClickRageDetector{},
+			&web.CpuIssueDetector{},
 			&web.MemoryIssueDetector{},
 			&web.NetworkIssueDetector{},
 			&web.PerformanceAggregator{},
