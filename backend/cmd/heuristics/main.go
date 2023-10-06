@@ -28,9 +28,9 @@ func main() {
 		return []handlers.MessageProcessor{
 			custom.NewInputEventBuilder(),
 			custom.NewPageEventBuilder(),
-			web.NewDeadClickDetector(),
-			&web.ClickRageDetector{},
-			&web.CpuIssueDetector{},
+			//web.NewDeadClickDetector(),
+			//&web.ClickRageDetector{},
+			//&web.CpuIssueDetector{},
 			&web.MemoryIssueDetector{},
 			&web.NetworkIssueDetector{},
 			&web.PerformanceAggregator{},
