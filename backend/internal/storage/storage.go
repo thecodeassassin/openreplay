@@ -198,10 +198,10 @@ func (s *Storage) prepareSession(path string, tp FileType, task *Task) error {
 
 func (s *Storage) packSession(task *Task, tp FileType) {
 	// If encryption key is empty, pack session using better algorithm
-	if task.key == "" {
-		s.packSessionBetter(task, tp)
-		return
-	}
+	//if task.key == "" {
+	//	s.packSessionBetter(task, tp)
+	//	return
+	//}
 
 	// Prepare mob file
 	mob := task.Mob(tp)
