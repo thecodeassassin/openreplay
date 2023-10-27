@@ -164,7 +164,7 @@ func (s *Storage) openSession(sessID, filePath string, tp FileType) ([]byte, err
 	start := time.Now()
 	res, err := s.sortSessionMessages(sessID, raw)
 	if err != nil {
-		return nil, fmt.Errorf("can't sort session, err: %s", err)
+		return nil, fmt.Errorf("can't sort session, sess: %s, err: %s", sessID, err)
 	}
 	metrics.RecordSessionSortDuration(float64(time.Now().Sub(start).Milliseconds()), tp.String())
 	return res, nil
@@ -174,7 +174,7 @@ func (s *Storage) sortSessionMessages(sessID string, raw []byte) ([]byte, error)
 	// Parse messages, sort by index and save result into slice of bytes
 	unsortedMessages, err := messages.SplitMessages(sessID, raw)
 	if err != nil {
-		log.Printf("can't sort session, err: %s", err)
+		log.Printf("can't split session into messages, sess: %s, err: %s", sessID, err)
 		return raw, nil
 	}
 	return messages.MergeMessages(raw, messages.SortMessages(unsortedMessages)), nil
