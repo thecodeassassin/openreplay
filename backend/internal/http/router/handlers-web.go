@@ -325,7 +325,7 @@ func (e *Router) featureFlagsHandlerWeb(w http.ResponseWriter, r *http.Request) 
 	bodySize := 0
 
 	// Check authorization
-	_, err := e.services.Tokenizer.ParseFromHTTPRequest(r)
+	tokenData, err := e.services.Tokenizer.ParseFromHTTPRequest(r)
 	if err != nil {
 		ResponseWithError(w, http.StatusUnauthorized, err, startTime, r.URL.Path, bodySize)
 		return
@@ -355,6 +355,7 @@ func (e *Router) featureFlagsHandlerWeb(w http.ResponseWriter, r *http.Request) 
 
 	computedFlags, err := e.services.FeatureFlags.ComputeFlagsForSession(req)
 	if err != nil {
+		log.Printf("can't compute feature flags, sess: %d, err: %s", tokenData.ID, err)
 		ResponseWithError(w, http.StatusInternalServerError, err, startTime, r.URL.Path, bodySize)
 		return
 	}

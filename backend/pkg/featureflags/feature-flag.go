@@ -421,12 +421,12 @@ func (f *featureFlagsImpl) ComputeFlagsForSession(req *FeatureFlagsRequest) ([]i
 	// Grab flags and conditions for project
 	projectID, err := strconv.ParseUint(req.ProjectID, 10, 32)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't parse projectID, err: %s", err)
 	}
 
 	flags, err := f.GetFeatureFlags(uint32(projectID))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't get feature flags, err: %s", err)
 	}
 	return ComputeFeatureFlags(flags, req)
 }
