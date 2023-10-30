@@ -388,9 +388,14 @@ func (f *featureFlagsImpl) GetFeatureFlags(projectID uint32) ([]*FeatureFlag, er
 
 	for rows.Next() {
 		var flag FeatureFlagPG
-		if err := rows.Scan(&flag.FlagID, &flag.FlagKey, &flag.FlagType, &flag.IsPersist, &flag.Payload, &flag.RolloutPercentages,
+		var rollouts *string
+		if err := rows.Scan(&flag.FlagID, &flag.FlagKey, &flag.FlagType, &flag.IsPersist, &flag.Payload, &rollouts, //&flag.RolloutPercentages,
 			&flag.Filters, &flag.Values, &flag.Payloads, &flag.VariantRollout); err != nil {
 			return nil, err
+		}
+		log.Printf("raw rollout percentage: %s", *rollouts)
+		if err := flag.RolloutPercentages.Set(rollouts); err != nil {
+			log.Printf("can't set RolloutPercentages, err: %s", err)
 		}
 		parsedFlag, err := ParseFeatureFlag(&flag)
 		if err != nil {
