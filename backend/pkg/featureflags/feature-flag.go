@@ -362,6 +362,7 @@ func ComputeFeatureFlags(flags []*FeatureFlag, sessInfo *FeatureFlagsRequest) ([
 //---------------------------------//
 
 func (f *featureFlagsImpl) GetFeatureFlags(projectID uint32) ([]*FeatureFlag, error) {
+	log.Println(projectID)
 	rows, err := f.db.Query(`
 		SELECT ff.flag_id, ff.flag_key, ff.flag_type, ff.is_persist, ff.payload, ff.rollout_percentages, ff.filters,
        		ARRAY_AGG(fv.value) as values,
@@ -388,15 +389,23 @@ func (f *featureFlagsImpl) GetFeatureFlags(projectID uint32) ([]*FeatureFlag, er
 
 	for rows.Next() {
 		var flag FeatureFlagPG
-		var rollouts *string
-		if err := rows.Scan(&flag.FlagID, &flag.FlagKey, &flag.FlagType, &flag.IsPersist, &flag.Payload, &rollouts, //&flag.RolloutPercentages,
-			&flag.Filters, &flag.Values, &flag.Payloads, &flag.VariantRollout); err != nil {
+		//var rollout, filters, values, payloads, variant interface{}
+		if err := rows.Scan(&flag.FlagID, &flag.FlagKey, &flag.FlagType, &flag.IsPersist, &flag.Payload,
+			//&rollout,  //
+			&flag.RolloutPercentages,
+			//&filters,  //
+			&flag.Filters,
+			//&values,   //
+			&flag.Values,
+			//&payloads, //
+			&flag.Payloads,
+			//&variant,  //
+			&flag.VariantRollout,
+		); err != nil {
 			return nil, err
 		}
-		log.Printf("raw rollout percentage: %s", *rollouts)
-		if err := flag.RolloutPercentages.Set(rollouts); err != nil {
-			log.Printf("can't set RolloutPercentages, err: %s", err)
-		}
+		//log.Printf("%+v", rollout)
+		log.Printf("raw flag: %+v", flag)
 		parsedFlag, err := ParseFeatureFlag(&flag)
 		if err != nil {
 			return nil, err

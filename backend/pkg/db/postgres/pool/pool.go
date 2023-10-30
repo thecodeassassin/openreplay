@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"openreplay/backend/pkg/metrics/database"
 )
 
@@ -83,22 +83,22 @@ func (p *poolImpl) Close() {
 }
 
 func (p *poolImpl) checker() {
-	for {
-		time.Sleep(time.Second * 5)
-		if p.conn != nil {
-			ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
-			if err := p.conn.Ping(ctx); err != nil {
-				log.Println("pgxpool.Ping error: ", err)
-			}
-		}
-	}
+	//for {
+	//	time.Sleep(time.Second * 5)
+	//	if p.conn != nil {
+	//		ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
+	//		if err := p.conn.Ping(ctx); err != nil {
+	//			log.Println("pgxpool.Ping error: ", err)
+	//		}
+	//	}
+	//}
 }
 
 func New(url string) (Pool, error) {
 	if url == "" {
 		return nil, errors.New("pg connection url is empty")
 	}
-	conn, err := pgxpool.New(context.Background(), url)
+	conn, err := pgxpool.Connect(context.Background(), url)
 	if err != nil {
 		return nil, fmt.Errorf("pgxpool.Connect error: %v", err)
 	}
