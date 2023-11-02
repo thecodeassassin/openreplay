@@ -1,7 +1,7 @@
 from decouple import config, Csv
-import asyncio
+# import asyncio
 from db.api import DBConnection
-from utils import pg_client
+# from utils import pg_client
 from utils.worker import WorkerPool
 
         
@@ -10,7 +10,7 @@ def main():
     database_api = DBConnection(DATABASE)
 
     allowed_projects = config('PROJECT_IDS', default=None, cast=Csv(int))
-    w_pool = WorkerPool(n_workers=config('OR_EE_CONNECTOR_WORKER_COUNT'),
+    w_pool = WorkerPool(n_workers=config('OR_EE_CONNECTOR_WORKER_COUNT', cast=int),
                         project_filter=allowed_projects)
     try:
         w_pool.load_checkpoint(database_api)
@@ -24,6 +24,6 @@ def main():
 
 
 if __name__ == '__main__':
-    asyncio.run(pg_client.init())
+    # asyncio.run(pg_client.init())
     main()
 
