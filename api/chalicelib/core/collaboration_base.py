@@ -21,17 +21,17 @@ class BaseCollaboration(ABC):
 
     @classmethod
     @abstractmethod
-    def send_batch(cls, tenant_id, webhook_id, attachments):
+    async def send_batch(cls, tenant_id, webhook_id, attachments):
         pass
 
     @classmethod
     @abstractmethod
-    def __share(cls, tenant_id, integration_id, attachments):
+    async def __share(cls, tenant_id, integration_id, attachments):
         pass
 
     @classmethod
     @abstractmethod
-    def share_session(cls, tenant_id, project_id, session_id, user, comment, integration_id=None):
+    async def share_session(cls, tenant_id, project_id, session_id, user, comment, integration_id=None):
         pass
 
     @classmethod

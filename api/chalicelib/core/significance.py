@@ -547,7 +547,7 @@ def get_issues(stages, rows, first_stage=None, last_stage=None, drop_only=False)
     return n_critical_issues, issues_dict, total_drop_due_to_issues
 
 
-def get_top_insights(filter_d: schemas.CardSeriesFilterSchema, project_id):
+async def get_top_insights(filter_d: schemas.CardSeriesFilterSchema, project_id):
     output = []
     stages = filter_d.events
     # TODO: handle 1 stage alone
@@ -584,9 +584,9 @@ def get_top_insights(filter_d: schemas.CardSeriesFilterSchema, project_id):
     if len(rows) == 0:
         return get_stages(stages, []), 0
     # Obtain the first part of the output
-    stages_list = get_stages(stages, rows)
+    stages_list = await get_stages(stages, rows)
     # Obtain the second part of the output
-    total_drop_due_to_issues = get_issues(stages, rows,
+    total_drop_due_to_issues = await get_issues(stages, rows,
                                           first_stage=filter_d.get("firstStage"),
                                           last_stage=filter_d.get("lastStage"),
                                           drop_only=True)
@@ -603,7 +603,7 @@ async def get_issues_list(filter_d: schemas.CardSeriesFilterSchema, project_id, 
     if len(rows) == 0:
         return output
         # Obtain the second part of the output
-    n_critical_issues, issues_dict, total_drop_due_to_issues = get_issues(stages, rows, first_stage=first_stage,
+    n_critical_issues, issues_dict, total_drop_due_to_issues = await get_issues(stages, rows, first_stage=first_stage,
                                                                           last_stage=last_stage)
     output['total_drop_due_to_issues'] = total_drop_due_to_issues
     # output['critical_issues_count'] = n_critical_issues

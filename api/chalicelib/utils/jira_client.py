@@ -63,7 +63,7 @@ class JiraManager:
               + " ORDER BY createdDate DESC"
 
         try:
-            issues = self._jira.search_issues(jql, maxResults=1000, startAt=offset, fields=fields)
+            await issues = self._jira.search_issues(jql, maxResults=1000, startAt=offset, fields=fields)
         except JIRAError as e:
             self.retries -= 1
             if (e.status_code // 100) == 4 and self.retries > 0:
@@ -218,8 +218,8 @@ class JiraManager:
 
     def get_meta(self):
         meta = {}
-        meta['issueTypes'] = self.get_issue_types()
-        meta['users'] = self.get_assignable_users()
+        meta['issueTypes'] = await self.get_issue_types()
+        meta['users'] = await self.get_assignable_users()
         return meta
 
     def get_assignable_users(self):
@@ -245,14 +245,14 @@ class JiraManager:
 
         return users_dict
 
-    def get_issue_types(self):
+    async def get_issue_types(self):
         try:
-            types = self._jira.project(self._config['JIRA_PROJECT_ID']).issueTypes
+            await types = self._jira.project(self._config['JIRA_PROJECT_ID']).issueTypes
         except JIRAError as e:
             self.retries -= 1
             if (e.status_code // 100) == 4 and self.retries > 0:
                 time.sleep(1)
-                return self.get_issue_types()
+                return await self.get_issue_types()
             logger.error(f"=>Exception {e.text}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"JIRA: {e.text}")
         types_dict = []

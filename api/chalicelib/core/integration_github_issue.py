@@ -11,7 +11,7 @@ class GithubIntegrationIssue(BaseIntegrationIssue):
     def get_current_user(self):
         return formatter.user(self.__client.get("/user"))
 
-    def get_meta(self, repoId):
+    async def get_meta(self, repoId):
         current_user = self.get_current_user()
         try:
             users = self.__client.get(f"/repositories/{repoId}/collaborators")
@@ -28,13 +28,13 @@ class GithubIntegrationIssue(BaseIntegrationIssue):
 
         return meta
 
-    def create_new_assignment(self, integration_project_id, title, description, assignee,
+    async def create_new_assignment(self, integration_project_id, title, description, assignee,
                               issue_type):
         repoId = integration_project_id
         assignees = [assignee]
         labels = [str(issue_type)]
 
-        metas = self.get_meta(repoId)
+        metas = await self.get_meta(repoId)
         real_assignees = []
         for a in assignees:
             for u in metas["users"]:
@@ -51,7 +51,7 @@ class GithubIntegrationIssue(BaseIntegrationIssue):
                     break
             if not found:
                 real_labels.append(l)
-        issue = self.__client.post(f"/repositories/{repoId}/issues", body={"title": title, "body": description,
+        issue = await self.__client.post(f"/repositories/{repoId}/issues", body={"title": title, "body": description,
                                                                            "assignees": real_assignees,
                                                                            "labels": real_labels})
         return formatter.issue(issue)
@@ -72,17 +72,17 @@ class GithubIntegrationIssue(BaseIntegrationIssue):
                                  await self.__client.get(f"/repositories/{repoId}/issues/{issueNumber}/comments")]
         return issue
 
-    def comment(self, integration_project_id, assignment_id, comment):
+    async def comment(self, integration_project_id, assignment_id, comment):
         repoId = integration_project_id
         issueNumber = assignment_id
-        commentCreated = self.__client.post(f"/repositories/{repoId}/issues/{issueNumber}/comments",
+        commentCreated = await self.__client.post(f"/repositories/{repoId}/issues/{issueNumber}/comments",
                                             body={"body": comment})
         return formatter.comment(commentCreated)
 
-    def get_metas(self, integration_project_id):
-        current_user = self.get_current_user()
+    async def get_metas(self, integration_project_id):
+        current_user = await self.get_current_user()
         try:
-            users = self.__client.get(f"/repositories/{integration_project_id}/collaborators")
+            users = await self.__client.get(f"/repositories/{integration_project_id}/collaborators")
         except Exception as e:
             users = []
         users = [formatter.user(u) for u in users]

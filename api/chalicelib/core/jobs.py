@@ -34,7 +34,7 @@ async def get(job_id, project_id):
     return helper.dict_to_camel_case(data)
 
 
-def get_all(project_id):
+async def get_all(project_id):
     async with pg_client.PostgresClient() as cur:
         query = cur.mogrify(
             """SELECT *
@@ -106,7 +106,7 @@ def format_datetime(r):
     r["start_at"] = TimeUTC.datetime_to_timestamp(r["start_at"])
 
 
-def __get_session_ids_by_user_ids(project_id, user_ids):
+async def __get_session_ids_by_user_ids(project_id, user_ids):
     async with pg_client.PostgresClient() as cur:
         query = cur.mogrify(
             """SELECT session_id 
@@ -120,7 +120,7 @@ def __get_session_ids_by_user_ids(project_id, user_ids):
     return [s["session_id"] for s in ids]
 
 
-def __delete_sessions_by_session_ids(session_ids):
+async def __delete_sessions_by_session_ids(session_ids):
     async with pg_client.PostgresClient(unlimited_query=True) as cur:
         query = cur.mogrify(
             """DELETE FROM public.sessions
@@ -130,9 +130,9 @@ def __delete_sessions_by_session_ids(session_ids):
         await cur.execute(query=query)
 
 
-def __delete_session_mobs_by_session_ids(session_ids, project_id):
-    sessions_mobs.delete_mobs(session_ids=session_ids, project_id=project_id)
-    sessions_devtool.delete_mobs(session_ids=session_ids, project_id=project_id)
+async def __delete_session_mobs_by_session_ids(session_ids, project_id):
+    await sessions_mobs.delete_mobs(session_ids=session_ids, project_id=project_id)
+    await sessions_devtool.delete_mobs(session_ids=session_ids, project_id=project_id)
 
 
 def get_scheduled_jobs():
@@ -148,13 +148,13 @@ def get_scheduled_jobs():
     return helper.list_to_camel_case(data)
 
 
-def execute_jobs():
+async def execute_jobs():
     jobs = get_scheduled_jobs()
     for job in jobs:
         print(f"Executing jobId:{job['jobId']}")
         try:
             if job["action"] == Actions.DELETE_USER_DATA:
-                session_ids = __get_session_ids_by_user_ids(project_id=job["projectId"],
+                session_ids = await __get_session_ids_by_user_ids(project_id=job["projectId"],
                                                             user_ids=[job["referenceId"]])
                 if len(session_ids) > 0:
                     print(f"Deleting {len(session_ids)} sessions")

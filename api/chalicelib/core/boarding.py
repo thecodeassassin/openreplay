@@ -51,9 +51,9 @@ async def get_state(tenant_id):
          "done": len(users.get_members(tenant_id=tenant_id)) > 1,
          "URL": "https://app.openreplay.com/client/manage-users"},
         {"task": "Integrations",
-         "done": len(log_tool_datadog.get_all(tenant_id=tenant_id)) > 0 \
-                 or len(log_tool_sentry.get_all(tenant_id=tenant_id)) > 0 \
-                 or len(log_tool_stackdriver.get_all(tenant_id=tenant_id)) > 0,
+         "done": len(await log_tool_datadog.get_all(tenant_id=tenant_id)) > 0 \
+                 or len(await log_tool_sentry.get_all(tenant_id=tenant_id)) > 0 \
+                 or len(await log_tool_stackdriver.get_all(tenant_id=tenant_id)) > 0,
          "URL": "https://docs.openreplay.com/integrations"}
     ]
 

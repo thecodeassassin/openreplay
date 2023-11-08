@@ -19,7 +19,7 @@ def process_data(data):
     }
 
 
-def compute():
+async def compute():
     async with pg_client.PostgresClient(long_query=True) as cur:
         await cur.execute(
             f"""UPDATE public.tenants
@@ -41,7 +41,7 @@ def compute():
         await http.post('https://api.openreplay.com/os/telemetry', json={"stats": [process_data(data)]})
 
 
-def new_client():
+async def new_client():
     async with pg_client.PostgresClient() as cur:
         await cur.execute(
             f"""SELECT *, openreplay_version() AS version_number,

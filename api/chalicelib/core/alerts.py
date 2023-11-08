@@ -116,7 +116,7 @@ async def process_notifications(data):
                     })
                 elif c["type"] in ["webhook"]:
                     full[c["type"]].append({"data": webhook_data, "destination": c["value"]})
-    notifications.create(data)
+    await notifications.create(data)
     BATCH_SIZE = 200
     for t in full.keys():
         for i in range(0, len(full[t]), BATCH_SIZE):
@@ -214,7 +214,7 @@ def send_to_msteams_batch(notifications_list):
                                                                  ]
                                                              }]})
     for batch in webhookId_map.keys():
-        MSTeams.send_batch(tenant_id=webhookId_map[batch]["tenantId"], webhook_id=batch,
+        await MSTeams.send_batch(tenant_id=webhookId_map[batch]["tenantId"], webhook_id=batch,
                            attachments=webhookId_map[batch]["batch"])
 
 

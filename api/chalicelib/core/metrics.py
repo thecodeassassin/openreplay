@@ -1,4 +1,4 @@
-import math
+/mport math
 
 import schemas
 from chalicelib.core import metadata
@@ -383,12 +383,12 @@ async def __get_application_activity(cur, project_id, startTimestamp, endTimesta
 async def get_user_activity(project_id, startTimestamp=TimeUTC.now(delta_days=-1),
                       endTimestamp=TimeUTC.now(), **args):
     async with pg_client.PostgresClient() as cur:
-        row = __get_user_activity(cur, project_id, startTimestamp, endTimestamp, **args)
+        row = await __get_user_activity(cur, project_id, startTimestamp, endTimestamp, **args)
         results = helper.dict_to_camel_case(row)
         diff = endTimestamp - startTimestamp
         endTimestamp = startTimestamp
         startTimestamp = endTimestamp - diff
-        row = __get_user_activity(cur, project_id, startTimestamp, endTimestamp, **args)
+        row = await __get_user_activity(cur, project_id, startTimestamp, endTimestamp, **args)
 
         previous = helper.dict_to_camel_case(row)
         for key in previous:
@@ -1666,7 +1666,7 @@ async def __get_domains_errors_4xx_and_5xx(status, project_id, startTimestamp=Ti
         return rows
 
 
-await def get_domains_errors_4xx(project_id, startTimestamp=TimeUTC.now(delta_days=-1),
+async def get_domains_errors_4xx(project_id, startTimestamp=TimeUTC.now(delta_days=-1),
                            endTimestamp=TimeUTC.now(), density=6, **args):
     return await __get_domains_errors_4xx_and_5xx(status=4, project_id=project_id, startTimestamp=startTimestamp,
                                             endTimestamp=endTimestamp, density=density, **args)

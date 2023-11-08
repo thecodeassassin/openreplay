@@ -17,11 +17,11 @@ class BaseIntegrationIssue(ABC):
         self.integration_token = integration_token
 
     @abstractmethod
-    def create_new_assignment(self, integration_project_id, title, description, assignee, issue_type):
+    async def create_new_assignment(self, integration_project_id, title, description, assignee, issue_type):
         pass
 
     @abstractmethod
-    def get_by_ids(self, saved_issues):
+    async def get_by_ids(self, saved_issues):
         pass
 
     @abstractmethod
@@ -29,11 +29,11 @@ class BaseIntegrationIssue(ABC):
         pass
 
     @abstractmethod
-    def comment(self, integration_project_id, assignment_id, comment):
+    async def comment(self, integration_project_id, assignment_id, comment):
         pass
 
     @abstractmethod
-    def get_metas(self, integration_project_id):
+    async def get_metas(self, integration_project_id):
         pass
 
     @abstractmethod

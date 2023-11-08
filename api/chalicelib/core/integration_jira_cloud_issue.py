@@ -18,7 +18,7 @@ class JIRACloudIntegrationIssue(BaseIntegrationIssue):
             'assignee': {"id": assignee},
             "labels": ["OpenReplay"]
         }
-        return self._client.create_issue(data)
+        return await self._client.create_issue(data)
 
     def get_by_ids(self, saved_issues):
         projects_map = {}
@@ -43,13 +43,14 @@ class JIRACloudIntegrationIssue(BaseIntegrationIssue):
 
     def comment(self, integration_project_id, assignment_id, comment):
         self._client.set_jira_project_id(integration_project_id)
-        return self._client.add_comment_v3(assignment_id, comment)
+        out = await self._client.add_comment_v3(assignment_id, comment)
+        return out
 
     def get_metas(self, integration_project_id):
         meta = {}
         self._client.set_jira_project_id(integration_project_id)
-        meta['issueTypes'] = self._client.get_issue_types()
-        meta['users'] = self._client.get_assignable_users()
+        meta['issueTypes'] = await self._client.get_issue_types()
+        meta['users'] = await self._client.get_assignable_users()
         return {"provider": self.provider.lower(), **meta}
 
     async def get_projects(self):

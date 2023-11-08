@@ -46,7 +46,7 @@ class MSTeams(BaseCollaboration):
     @classmethod
     async def send_raw(cls, tenant_id, webhook_id, body):
         http = orpy.orpy.get().httpx
-        integration = cls.get_integration(tenant_id=tenant_id, integration_id=webhook_id)
+        integration = await cls.get_integration(tenant_id=tenant_id, integration_id=webhook_id)
         if integration is None:
             return {"errors": ["msteams integration not found"]}
         try:
@@ -70,7 +70,7 @@ class MSTeams(BaseCollaboration):
     @classmethod
     async def send_batch(cls, tenant_id, webhook_id, attachments):
         http = orpy.orpy.get().httpx
-        integration = cls.get_integration(tenant_id=tenant_id, integration_id=webhook_id)
+        integration = await cls.get_integration(tenant_id=tenant_id, integration_id=webhook_id)
         if integration is None:
             return {"errors": ["msteams integration not found"]}
         print(f"====> sending msteams batch notification: {len(attachments)}")

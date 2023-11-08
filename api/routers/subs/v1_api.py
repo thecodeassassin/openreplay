@@ -30,7 +30,7 @@ async def get_session_events(projectKey: str, sessionId: int, context: schemas.C
     if projectId is None:
         return {"errors": ["invalid projectKey"]}
     return {
-        "data": events.get_by_session_id(
+        "data": await events.get_by_session_id(
             project_id=context.project.project_id,
             session_id=sessionId
         )
@@ -72,7 +72,7 @@ async def get_jobs(projectKey: str, context: schemas.CurrentContext = Depends(OR
 
 @app_apikey.get('/v1/{projectKey}/jobs/{jobId}', tags=["api"])
 async def get_job(projectKey: str, jobId: int, context: schemas.CurrentContext = Depends(OR_context)):
-    return {"data": jobs.get(job_id=jobId, project_id=context.project.project_id)}
+    return {"data": await jobs.get(job_id=jobId, project_id=context.project.project_id)}
 
 
 @app_apikey.delete('/v1/{projectKey}/jobs/{jobId}', tags=["api"])

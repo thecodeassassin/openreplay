@@ -31,7 +31,7 @@ async def __try_live(project_id, data: schemas.CardSchema):
             diff = s.filter.endTimestamp - s.filter.startTimestamp
             s.filter.endTimestamp = s.filter.startTimestamp
             s.filter.startTimestamp = s.filter.endTimestamp - diff
-            r["previousCount"] = sessions.search2_series(data=s.filter, project_id=project_id, density=data.density,
+            r["previousCount"] = await sessions.search2_series(data=s.filter, project_id=project_id, density=data.density,
                                                          view_type=data.view_type, metric_type=data.metric_type,
                                                          metric_of=data.metric_of, metric_value=data.metric_value)
             r["countProgress"] = helper.__progress(old_val=r["previousCount"], new_val=r["count"])
@@ -121,7 +121,7 @@ def not_supported(**args):
     raise Exception("not supported")
 
 
-def __get_table_of_user_ids(project_id: int, data: schemas.CardTable, user_id: int = None):
+async def __get_table_of_user_ids(project_id: int, data: schemas.CardTable, user_id: int = None):
     return await __get_table_of_series(project_id=project_id, data=data)
 
 
@@ -133,27 +133,27 @@ async def __get_table_of_errors(project_id: int, data: schemas.CardTable, user_i
     return await __get_errors_list(project_id=project_id, user_id=user_id, data=data)
 
 
-def __get_table_of_issues(project_id: int, data: schemas.CardTable, user_id: int = None):
+async def __get_table_of_issues(project_id: int, data: schemas.CardTable, user_id: int = None):
     return await __get_table_of_series(project_id=project_id, data=data)
 
 
-def __get_table_of_browsers(project_id: int, data: schemas.CardTable, user_id: int = None):
+async def __get_table_of_browsers(project_id: int, data: schemas.CardTable, user_id: int = None):
     return await __get_table_of_series(project_id=project_id, data=data)
 
 
-def __get_table_of_devises(project_id: int, data: schemas.CardTable, user_id: int = None):
+async def __get_table_of_devises(project_id: int, data: schemas.CardTable, user_id: int = None):
     return await __get_table_of_series(project_id=project_id, data=data)
 
 
-def __get_table_of_countries(project_id: int, data: schemas.CardTable, user_id: int = None):
+async def __get_table_of_countries(project_id: int, data: schemas.CardTable, user_id: int = None):
     return await __get_table_of_series(project_id=project_id, data=data)
 
 
-def __get_table_of_urls(project_id: int, data: schemas.CardTable, user_id: int = None):
+async def __get_table_of_urls(project_id: int, data: schemas.CardTable, user_id: int = None):
     return await __get_table_of_series(project_id=project_id, data=data)
 
 
-def __get_table_chart(project_id: int, data: schemas.CardTable, user_id: int):
+async def __get_table_chart(project_id: int, data: schemas.CardTable, user_id: int):
     supported = {
         schemas.MetricOfTable.sessions: __get_table_of_sessions,
         schemas.MetricOfTable.errors: __get_table_of_errors,
@@ -206,7 +206,7 @@ def __merge_metric_with_data(metric: schemas.CardSchema,
     return metric
 
 
-def make_chart(project_id, user_id, data: schemas.CardSessionsSchema, metric: schemas.CardSchema):
+async def make_chart(project_id, user_id, data: schemas.CardSessionsSchema, metric: schemas.CardSchema):
     if metric is None:
         return None
     metric: schemas.CardSchema = __merge_metric_with_data(metric=metric, data=data)
@@ -345,7 +345,7 @@ def get_issues(project_id: int, user_id: int, data: schemas.CardSchema):
         schemas.MetricType.insights: not_supported,
         schemas.MetricType.pathAnalysis: __get_path_analysis_issues,
     }
-    return supported.get(data.metric_type, not_supported)(project_id=project_id, data=data, user_id=user_id)
+    return await supported.get(data.metric_type, not_supported)(project_id=project_id, data=data, user_id=user_id)
 
 
 def __get_path_analysis_card_info(data: schemas.CardPathAnalysis):
@@ -543,12 +543,12 @@ def search_all(project_id, user_id, data: schemas.SearchCardsSchema, include_ser
     return rows
 
 
-def get_all(project_id, user_id):
+async def get_all(project_id, user_id):
     default_search = schemas.SearchCardsSchema()
-    result = rows = search_all(project_id=project_id, user_id=user_id, data=default_search)
+    result = rows = await search_all(project_id=project_id, user_id=user_id, data=default_search)
     while len(rows) == default_search.limit:
         default_search.page += 1
-        rows = search_all(project_id=project_id, user_id=user_id, data=default_search)
+        rows = await search_all(project_id=project_id, user_id=user_id, data=default_search)
         result += rows
 
     return result
@@ -650,7 +650,7 @@ async def get_series_for_alert(project_id, user_id):
     return helper.list_to_camel_case(rows)
 
 
-def change_state(project_id, metric_id, user_id, status):
+async def change_state(project_id, metric_id, user_id, status):
     async with pg_client.PostgresClient() as cur:
         await cur.execute(
             cur.mogrify("""\
@@ -660,7 +660,7 @@ def change_state(project_id, metric_id, user_id, status):
               AND (user_id = %(user_id)s OR is_public);""",
                         {"metric_id": metric_id, "status": status, "user_id": user_id})
         )
-    return get_card(metric_id=metric_id, project_id=project_id, user_id=user_id)
+    return await get_card(metric_id=metric_id, project_id=project_id, user_id=user_id)
 
 
 def get_funnel_sessions_by_issue(user_id, project_id, metric_id, issue_id,
@@ -702,8 +702,8 @@ def get_funnel_sessions_by_issue(user_id, project_id, metric_id, issue_id,
                 "issue": issue}
 
 
-def make_chart_from_card(project_id, user_id, metric_id, data: schemas.CardSessionsSchema):
-    raw_metric: dict = get_card(metric_id=metric_id, project_id=project_id, user_id=user_id, include_data=True)
+async def make_chart_from_card(project_id, user_id, metric_id, data: schemas.CardSessionsSchema):
+    raw_metric: dict = await get_card(metric_id=metric_id, project_id=project_id, user_id=user_id, include_data=True)
     if raw_metric is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="card not found")
     raw_metric["startTimestamp"] = data.startTimestamp
@@ -723,7 +723,7 @@ def make_chart_from_card(project_id, user_id, metric_id, data: schemas.CardSessi
                     mob_exists = True
                     break
             if mob_exists:
-                raw_metric["data"]['domURL'] = sessions_mobs.get_urls(session_id=raw_metric["data"]["sessionId"],
+                raw_metric["data"]['domURL'] = await sessions_mobs.get_urls(session_id=raw_metric["data"]["sessionId"],
                                                                       project_id=project_id)
                 raw_metric["data"]['mobsUrl'] = await sessions_mobs.get_urls_depercated(
                     session_id=raw_metric["data"]["sessionId"])

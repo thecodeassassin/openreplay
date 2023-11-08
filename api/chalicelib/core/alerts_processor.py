@@ -177,9 +177,9 @@ def Build(a):
     return q, params
 
 
-def process():
+async def process():
     notifications = []
-    all_alerts = alerts_listener.get_all_alerts()
+    all_alerts = await alerts_listener.get_all_alerts()
     async with pg_client.PostgresClient() as cur:
         for alert in all_alerts:
             if can_check(alert):

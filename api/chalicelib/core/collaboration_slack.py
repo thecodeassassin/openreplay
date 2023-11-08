@@ -103,7 +103,7 @@ class Slack(BaseCollaboration):
                 "title": f"{config('SITE_URL')}/{project_id}/session/{session_id}",
                 "title_link": f"{config('SITE_URL')}/{project_id}/session/{session_id}",
                 "text": comment}
-        data = cls.__share(tenant_id, integration_id, attachement=args)
+        data = await cls.__share(tenant_id, integration_id, attachement=args)
         if "errors" in data:
             return data
         return {"data": data}
@@ -115,7 +115,7 @@ class Slack(BaseCollaboration):
                 "title": f"{config('SITE_URL')}/{project_id}/errors/{error_id}",
                 "title_link": f"{config('SITE_URL')}/{project_id}/errors/{error_id}",
                 "text": comment}
-        data = cls.__share(tenant_id, integration_id, attachement=args)
+        data = await cls.__share(tenant_id, integration_id, attachement=args)
         if "errors" in data:
             return data
         return {"data": data}

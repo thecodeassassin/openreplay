@@ -387,7 +387,7 @@ async def delete_default_issue_tracking_tool(_=Body(None), context: schemas.Curr
 
 @app.delete('/integrations/jira', tags=["integrations"])
 async def delete_jira_cloud(_=Body(None), context: schemas.CurrentContext = Depends(OR_context)):
-    error, integration = integrations_manager.get_integration(tool=integration_jira_cloud.PROVIDER,
+    error, integration = await integrations_manager.get_integration(tool=integration_jira_cloud.PROVIDER,
                                                               tenant_id=context.tenant_id,
                                                               user_id=context.user_id,
                                                               for_delete=True)
@@ -398,7 +398,7 @@ async def delete_jira_cloud(_=Body(None), context: schemas.CurrentContext = Depe
 
 @app.delete('/integrations/github', tags=["integrations"])
 async def delete_github(_=Body(None), context: schemas.CurrentContext = Depends(OR_context)):
-    error, integration = integrations_manager.get_integration(tool=integration_github.PROVIDER,
+    error, integration = await integrations_manager.get_integration(tool=integration_github.PROVIDER,
                                                               tenant_id=context.tenant_id,
                                                               user_id=context.user_id,
                                                               for_delete=True)
@@ -409,7 +409,7 @@ async def delete_github(_=Body(None), context: schemas.CurrentContext = Depends(
 
 @app.get('/integrations/issues/list_projects', tags=["integrations"])
 async def get_all_issue_tracking_projects(context: schemas.CurrentContext = Depends(OR_context)):
-    error, integration = integrations_manager.get_integration(tenant_id=context.tenant_id,
+    error, integration = await integrations_manager.get_integration(tenant_id=context.tenant_id,
                                                               user_id=context.user_id)
     if error is not None:
         return error
@@ -421,7 +421,7 @@ async def get_all_issue_tracking_projects(context: schemas.CurrentContext = Depe
 
 @app.get('/integrations/issues/{integrationProjectId}', tags=["integrations"])
 async def get_integration_metadata(integrationProjectId: int, context: schemas.CurrentContext = Depends(OR_context)):
-    error, integration = integrations_manager.get_integration(tenant_id=context.tenant_id,
+    error, integration = await integrations_manager.get_integration(tenant_id=context.tenant_id,
                                                               user_id=context.user_id)
     if error is not None:
         return error

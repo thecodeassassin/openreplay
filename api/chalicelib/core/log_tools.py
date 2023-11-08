@@ -60,7 +60,7 @@ async def get(project_id, integration):
     return helper.dict_to_camel_case(helper.flatten_nested_dicts(r))
 
 
-def get_all_by_type(integration):
+async def get_all_by_type(integration):
     async with pg_client.PostgresClient() as cur:
         await cur.execute(
             cur.mogrify(

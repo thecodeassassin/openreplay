@@ -29,7 +29,7 @@ SESSION_PROJECTION_COLS = """s.project_id,
                            """
 
 
-def get_live_sessions_ws_user_id(project_id, user_id):
+async def get_live_sessions_ws_user_id(project_id, user_id):
     data = {
         "filter": {"userId": user_id} if user_id else {}
     }

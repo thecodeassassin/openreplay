@@ -32,7 +32,7 @@ def __merge_cells(rows, start, count, replacement):
 
 
 def __get_grouped_clickrage(rows, session_id, project_id):
-    click_rage_issues = issues.get_by_session_id(session_id=session_id, issue_type="click_rage", project_id=project_id)
+    click_rage_issues = await issues.get_by_session_id(session_id=session_id, issue_type="click_rage", project_id=project_id)
     if len(click_rage_issues) == 0:
         return rows
 

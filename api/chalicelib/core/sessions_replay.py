@@ -48,7 +48,7 @@ async def get_by_id2_pg(project_id, session_id, context: schemas.CurrentContext,
             data = helper.dict_to_camel_case(data)
             if full_data:
                 if data["platform"] == 'ios':
-                    data['events'] = events_ios.get_by_sessionId(project_id=project_id, session_id=session_id)
+                    data['events'] = await events_ios.get_by_sessionId(project_id=project_id, session_id=session_id)
                     for e in data['events']:
                         if e["type"].endswith("_IOS"):
                             e["type"] = e["type"][:-len("_IOS")]
@@ -77,7 +77,7 @@ async def get_by_id2_pg(project_id, session_id, context: schemas.CurrentContext,
 
                 data['notes'] = await sessions_notes.get_session_notes(tenant_id=context.tenant_id, project_id=project_id,
                                                                  session_id=session_id, user_id=context.user_id)
-                data['metadata'] = await __group_metadata(project_metadata=data.pop("projectMetadata"), session=data)
+                data['metadata'] = __group_metadata(project_metadata=data.pop("projectMetadata"), session=data)
                 data['issues'] = await issues.get_by_session_id(session_id=session_id, project_id=project_id)
                 data['live'] = live and assist.is_live(project_id=project_id, session_id=session_id,
                                                        project_key=data["projectKey"])
@@ -123,15 +123,15 @@ async def get_replay(project_id, session_id, context: schemas.CurrentContext, fu
             data = helper.dict_to_camel_case(data)
             if full_data:
                 if data["platform"] == 'ios':
-                    data['domURL'] = sessions_mobs.get_ios(session_id=session_id, project_id=project_id,
+                    data['domURL'] = await sessions_mobs.get_ios(session_id=session_id, project_id=project_id,
                                                            check_existence=False)
-                    data['videoURL'] = sessions_mobs.get_ios_videos(session_id=session_id, project_id=project_id,
+                    data['videoURL'] = await sessions_mobs.get_ios_videos(session_id=session_id, project_id=project_id,
                                                                     check_existence=False)
                 else:
-                    data['domURL'] = sessions_mobs.get_urls(session_id=session_id, project_id=project_id,
+                    data['domURL'] = await sessions_mobs.get_urls(session_id=session_id, project_id=project_id,
                                                             check_existence=False)
                     data['mobsUrl'] = await sessions_mobs.get_urls_depercated(session_id=session_id, check_existence=False)
-                    data['devtoolsURL'] = sessions_devtool.get_urls(session_id=session_id, project_id=project_id,
+                    data['devtoolsURL'] = await sessions_devtool.get_urls(session_id=session_id, project_id=project_id,
                                                                     check_existence=False)
 
                 data['metadata'] = __group_metadata(project_metadata=data.pop("projectMetadata"), session=data)

@@ -118,7 +118,7 @@ def __check_be_service(service_name):
     return fn
 
 
-def __check_redis(*_):
+async def __check_redis(*_):
     fail_response = {
         "health": False,
         "details": {"errors": ["server health-check failed"]}
@@ -127,9 +127,9 @@ def __check_redis(*_):
         # fail_response["details"]["errors"].append("REDIS_STRING not defined in env-vars")
         return fail_response
 
+    r = redis.from_url(config("REDIS_STRING"))
     try:
-        r = redis.from_url(config("REDIS_STRING"))
-        r.ping()
+        await asyncio.to_thread(r, ping)
     except Exception as e:
         print("!! Issue getting redis-health response")
         print(str(e))
