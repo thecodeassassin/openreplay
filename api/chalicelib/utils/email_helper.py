@@ -32,7 +32,7 @@ async def alert_email(recipients, subject, data):
     await send_html(BODY_HTML=BODY_HTML, SUBJECT=subject, recipient=recipients)
 
 
-async def __get_color(idx):
+def __get_color(idx):
     return "#3EAAAF" if idx == 0 else "#77C3C7" if idx == 1 else "#9ED4D7" if idx == 2 else "#99d59a"
 
 

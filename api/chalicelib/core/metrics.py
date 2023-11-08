@@ -43,7 +43,7 @@ async def __get_constraints(project_id, time_constraint=True, chart=False, durat
     if chart:
         pg_sub_query.append(f"{main_table}{time_column} >= generated_timestamp")
         pg_sub_query.append(f"{main_table}{time_column} < generated_timestamp + %(step_size)s")
-    return pg_sub_query + await __get_meta_constraint(project_id=project_id, data=data)
+    return pg_sub_query + __get_meta_constraint(project_id=project_id, data=data)
 
 
 def __merge_charts(list1, list2, time_key="timestamp"):
@@ -77,7 +77,7 @@ METADATA_FIELDS = {"userId": "user_id",
                    "metadata10": "metadata_10"}
 
 
-async def __get_meta_constraint(project_id, data):
+def __get_meta_constraint(project_id, data):
     if len(data.get("filters", [])) == 0:
         return []
     constraints = []
@@ -204,7 +204,7 @@ async def get_errors(project_id, startTimestamp=TimeUTC.now(delta_days=-1), endT
         rows = await cur.fetchall()
         results = {
             "count": 0 if len(rows) == 0 else \
-                __count_distinct_errors(cur, project_id, startTimestamp, endTimestamp, pg_sub_query_subset),
+                await __count_distinct_errors(cur, project_id, startTimestamp, endTimestamp, pg_sub_query_subset),
             "impactedSessions": sum([r["count"] for r in rows]),
             "chart": rows
         }
@@ -212,7 +212,7 @@ async def get_errors(project_id, startTimestamp=TimeUTC.now(delta_days=-1), endT
         diff = endTimestamp - startTimestamp
         endTimestamp = startTimestamp
         startTimestamp = endTimestamp - diff
-        count = __count_distinct_errors(cur, project_id, startTimestamp, endTimestamp, pg_sub_query_subset, **args)
+        count = await __count_distinct_errors(cur, project_id, startTimestamp, endTimestamp, pg_sub_query_subset, **args)
         results["progress"] = helper.__progress(old_val=count, new_val=results["count"])
     return results
 
@@ -332,12 +332,12 @@ async def __get_page_metrics(cur, project_id, startTimestamp, endTimestamp, **ar
 async def get_application_activity(project_id, startTimestamp=TimeUTC.now(delta_days=-1),
                              endTimestamp=TimeUTC.now(), **args):
     async with pg_client.PostgresClient() as cur:
-        row = __get_application_activity(cur, project_id, startTimestamp, endTimestamp, **args)
+        row = await __get_application_activity(cur, project_id, startTimestamp, endTimestamp, **args)
         results = helper.dict_to_camel_case(row)
         diff = endTimestamp - startTimestamp
         endTimestamp = startTimestamp
         startTimestamp = endTimestamp - diff
-        row = __get_application_activity(cur, project_id, startTimestamp, endTimestamp, **args)
+        row = await __get_application_activity(cur, project_id, startTimestamp, endTimestamp, **args)
         previous = helper.dict_to_camel_case(row)
         for key in previous.keys():
             results[key + "Progress"] = helper.__progress(old_val=previous[key], new_val=results[key])
@@ -2202,13 +2202,13 @@ async def __get_application_activity_avg_image_load_time(cur, project_id, startT
 async def get_application_activity_avg_image_load_time(project_id, startTimestamp=TimeUTC.now(delta_days=-1),
                                                  endTimestamp=TimeUTC.now(), **args):
     async with pg_client.PostgresClient() as cur:
-        row = __get_application_activity_avg_image_load_time(cur, project_id, startTimestamp, endTimestamp, **args)
+        row = await __get_application_activity_avg_image_load_time(cur, project_id, startTimestamp, endTimestamp, **args)
         results = row
-        results["chart"] = get_performance_avg_image_load_time(cur, project_id, startTimestamp, endTimestamp, **args)
+        results["chart"] = await get_performance_avg_image_load_time(cur, project_id, startTimestamp, endTimestamp, **args)
         diff = endTimestamp - startTimestamp
         endTimestamp = startTimestamp
         startTimestamp = endTimestamp - diff
-        row = __get_application_activity_avg_image_load_time(cur, project_id, startTimestamp, endTimestamp, **args)
+        row = await __get_application_activity_avg_image_load_time(cur, project_id, startTimestamp, endTimestamp, **args)
         previous = helper.dict_to_camel_case(row)
         results["progress"] = helper.__progress(old_val=previous["value"], new_val=results["value"])
     helper.__time_value(results)
@@ -2277,13 +2277,13 @@ async def __get_application_activity_avg_page_load_time(cur, project_id, startTi
 async def get_application_activity_avg_page_load_time(project_id, startTimestamp=TimeUTC.now(delta_days=-1),
                                                 endTimestamp=TimeUTC.now(), **args):
     async with pg_client.PostgresClient() as cur:
-        row = __get_application_activity_avg_page_load_time(cur, project_id, startTimestamp, endTimestamp, **args)
+        row = await __get_application_activity_avg_page_load_time(cur, project_id, startTimestamp, endTimestamp, **args)
         results = row
-        results["chart"] = get_performance_avg_page_load_time(cur, project_id, startTimestamp, endTimestamp, **args)
+        results["chart"] = await get_performance_avg_page_load_time(cur, project_id, startTimestamp, endTimestamp, **args)
         diff = endTimestamp - startTimestamp
         endTimestamp = startTimestamp
         startTimestamp = endTimestamp - diff
-        row = __get_application_activity_avg_page_load_time(cur, project_id, startTimestamp, endTimestamp, **args)
+        row = await __get_application_activity_avg_page_load_time(cur, project_id, startTimestamp, endTimestamp, **args)
         previous = helper.dict_to_camel_case(row)
         results["progress"] = helper.__progress(old_val=previous["value"], new_val=results["value"])
     helper.__time_value(results)
@@ -2346,13 +2346,13 @@ async def __get_application_activity_avg_request_load_time(cur, project_id, star
 async def get_application_activity_avg_request_load_time(project_id, startTimestamp=TimeUTC.now(delta_days=-1),
                                                    endTimestamp=TimeUTC.now(), **args):
     async with pg_client.PostgresClient() as cur:
-        row = __get_application_activity_avg_request_load_time(cur, project_id, startTimestamp, endTimestamp, **args)
+        row = await __get_application_activity_avg_request_load_time(cur, project_id, startTimestamp, endTimestamp, **args)
         results = row
         results["chart"] = get_performance_avg_request_load_time(cur, project_id, startTimestamp, endTimestamp, **args)
         diff = endTimestamp - startTimestamp
         endTimestamp = startTimestamp
         startTimestamp = endTimestamp - diff
-        row = __get_application_activity_avg_request_load_time(cur, project_id, startTimestamp, endTimestamp, **args)
+        row = await __get_application_activity_avg_request_load_time(cur, project_id, startTimestamp, endTimestamp, **args)
         previous = helper.dict_to_camel_case(row)
         results["progress"] = helper.__progress(old_val=previous["value"], new_val=results["value"])
     helper.__time_value(results)

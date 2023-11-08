@@ -33,7 +33,7 @@ HEALTH_ENDPOINTS = {
 }
 
 
-def __check_database_pg(*_):
+async def __check_database_pg(*_):
     fail_response = {
         "health": False,
         "details": {
@@ -184,10 +184,10 @@ async def __get_sessions_stats(*_):
 async def get_health():
     health_map = {
         "databases": {
-            "postgres": __check_database_pg
+            "postgres": await __check_database_pg
         },
         "ingestionPipeline": {
-            "redis": __check_redis
+            "redis": await __check_redis
         },
         "backendServices": {
             "alerts": __check_be_service("alerts"),

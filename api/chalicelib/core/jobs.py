@@ -158,8 +158,8 @@ async def execute_jobs():
                                                             user_ids=[job["referenceId"]])
                 if len(session_ids) > 0:
                     print(f"Deleting {len(session_ids)} sessions")
-                    __delete_sessions_by_session_ids(session_ids=session_ids)
-                    __delete_session_mobs_by_session_ids(session_ids=session_ids, project_id=job["projectId"])
+                    await __delete_sessions_by_session_ids(session_ids=session_ids)
+                    await __delete_session_mobs_by_session_ids(session_ids=session_ids, project_id=job["projectId"])
             else:
                 raise Exception(f"The action '{job['action']}' not supported.")
 
