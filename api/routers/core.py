@@ -591,7 +591,7 @@ async def sign_sourcemap_for_upload(projectKey: str, data: schemas.SourcemapUplo
 
 @app.get('/config/weekly_report', tags=["weekly report config"])
 async def get_weekly_report_config(context: schemas.CurrentContext = Depends(OR_context)):
-    return {"data": waait weekly_report.get_config(user_id=context.user_id)}
+    return {"data": await weekly_report.get_config(user_id=context.user_id)}
 
 
 @app.post('/config/weekly_report', tags=["weekly report config"])
@@ -900,8 +900,7 @@ async def get_assist_stats_avg(
 
 @public_app.get(
     '/{project_id}/assist-stats/top-members',
-    tags=["assist-stats"],
-    response_model=schemas.AssistStatsTopMembersResponse
+    response_model : schemas.AssistStatsTopMembersResponse = Body(...)
 )
 async def get_assist_stats_top_members(
         project_id: int,
@@ -929,7 +928,7 @@ async def get_assist_stats_top_members(
 @public_app.post(
     '/{project_id}/assist-stats/sessions',
     tags=["assist-stats"],
-    response_model=schemas.AssistStatsSessionsResponse
+    response_model=schemas.AssistStatsSessionsResponse = Body(...)
 )
 async def get_assist_stats_sessions(
         project_id: int,

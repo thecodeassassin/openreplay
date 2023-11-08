@@ -49,7 +49,7 @@ async def get_all(project_id):
     return helper.list_to_camel_case(data)
 
 
-def create(project_id, user_id):
+async def create(project_id, user_id):
     async with pg_client.PostgresClient() as cur:
         job = {"status": "scheduled",
                "project_id": project_id,
@@ -71,12 +71,12 @@ def create(project_id, user_id):
     return record
 
 
-def cancel_job(job_id, job):
+async def cancel_job(job_id, job):
     job["status"] = JobStatus.CANCELLED
-    update(job_id=job_id, job=job)
+    await update(job_id=job_id, job=job)
 
 
-def update(job_id, job):
+async def update(job_id, job):
     async with pg_client.PostgresClient() as cur:
         job_data = {
             "job_id": job_id,
@@ -135,7 +135,7 @@ async def __delete_session_mobs_by_session_ids(session_ids, project_id):
     await sessions_devtool.delete_mobs(session_ids=session_ids, project_id=project_id)
 
 
-def get_scheduled_jobs():
+async def get_scheduled_jobs():
     async with pg_client.PostgresClient() as cur:
         query = cur.mogrify(
             """SELECT * 

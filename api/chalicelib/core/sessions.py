@@ -1069,7 +1069,7 @@ async def search_by_metadata(tenant_id, user_id, m_key, m_value, project_id=None
     all_projects = {int(p["projectId"]): p["name"] for p in all_projects}
     project_ids = list(all_projects.keys())
 
-    available_keys = async metadata.get_keys_by_projects(project_ids)
+    available_keys = await metadata.get_keys_by_projects(project_ids)
     for i in available_keys:
         available_keys[i]["user_id"] = schemas.FilterType.user_id
         available_keys[i]["user_anonymous_id"] = schemas.FilterType.user_anonymous_id

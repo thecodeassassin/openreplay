@@ -84,7 +84,7 @@ JOURNEY_TYPES = {
 # sort by top 5 according to sessions_count at the CTE level
 # final part project data without grouping
 # if start-point is selected, the selected event is ranked n°1
-def path_analysis(project_id: int, data: schemas.CardPathAnalysis):
+async def path_analysis(project_id: int, data: schemas.CardPathAnalysis):
     sub_events = []
     start_points_from = "pre_ranked_events"
     sub_sessions_extra_projection = ""

@@ -26,7 +26,7 @@ class GitHubIntegration(integration_base.BaseIntegration):
             return None
         return {"token": helper.obfuscate(text=integration["token"]), "provider": self.provider.lower()}
 
-    def update(self, changes, obfuscate=False):
+    async def update(self, changes, obfuscate=False):
         async with pg_client.PostgresClient() as cur:
             sub_query = [f"{helper.key_to_snake_case(k)} = %({k})s" for k in changes.keys()]
             await cur.execute(

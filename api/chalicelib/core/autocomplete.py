@@ -110,7 +110,7 @@ def __generic_query(typename, value_length=None):
 
 
 def __generic_autocomplete(event: Event):
-    def f(project_id, value, key=None, source=None):
+    async def f(project_id, value, key=None, source=None):
         async with pg_client.PostgresClient() as cur:
             query = __generic_query(event.ui_type, value_length=len(value))
             params = {"project_id": project_id, "value": helper.string_to_sql_like(value),
@@ -215,7 +215,7 @@ def __errors_query(source=None, value_length=None):
                 LIMIT 5));"""
 
 
-def __search_errors(project_id, value, key=None, source=None):
+async def __search_errors(project_id, value, key=None, source=None):
     async with pg_client.PostgresClient() as cur:
         await cur.execute(
             cur.mogrify(__errors_query(source,
@@ -228,7 +228,7 @@ def __search_errors(project_id, value, key=None, source=None):
     return results
 
 
-def __search_errors_ios(project_id, value, key=None, source=None):
+async def __search_errors_ios(project_id, value, key=None, source=None):
     if len(value) > 2:
         query = f"""(SELECT DISTINCT ON(lg.reason)
                         lg.reason AS value,
@@ -297,7 +297,7 @@ def __search_errors_ios(project_id, value, key=None, source=None):
     return results
 
 
-def __search_metadata(project_id, value, key=None, source=None):
+async def __search_metadata(project_id, value, key=None, source=None):
     meta_keys = metadata.get(project_id=project_id)
     meta_keys = {m["key"]: m["index"] for m in meta_keys}
     if len(meta_keys) == 0 or key is not None and key not in meta_keys.keys():

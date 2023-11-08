@@ -1,5 +1,5 @@
 import logging
-from contextlib
+from contextlib import asynccontextmanager
 
 import psycopg
 from decouple import config

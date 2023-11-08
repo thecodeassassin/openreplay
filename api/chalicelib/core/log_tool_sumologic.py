@@ -8,11 +8,11 @@ async def get_all(tenant_id):
     return await log_tools.get_all_by_tenant(tenant_id=tenant_id, integration=IN_TY)
 
 
-def get(project_id):
+async def get(project_id):
     return log_tools.get(project_id=project_id, integration=IN_TY)
 
 
-def update(tenant_id, project_id, changes):
+async def update(tenant_id, project_id, changes):
     options = {}
 
     if "region" in changes:

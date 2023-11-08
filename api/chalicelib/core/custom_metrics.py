@@ -58,7 +58,7 @@ async def __get_table_of_series(project_id, data: schemas.CardSchema):
     return results
 
 
-def __get_funnel_chart(project_id: int, data: schemas.CardFunnel, user_id: int = None):
+async def __get_funnel_chart(project_id: int, data: schemas.CardFunnel, user_id: int = None):
     if len(data.series) == 0:
         return {
             "stages": [],
@@ -332,7 +332,7 @@ def __get_path_analysis_issues(project_id: int, user_id: int, data: schemas.Card
     return result
 
 
-def get_issues(project_id: int, user_id: int, data: schemas.CardSchema):
+async def get_issues(project_id: int, user_id: int, data: schemas.CardSchema):
     if data.is_predefined:
         return not_supported()
     if data.metric_of == schemas.MetricOfTable.issues:
@@ -356,7 +356,7 @@ def __get_path_analysis_card_info(data: schemas.CardPathAnalysis):
     return r
 
 
-def create_card(project_id, user_id, data: schemas.CardSchema, dashboard=False):
+async def create_card(project_id, user_id, data: schemas.CardSchema, dashboard=False):
     async with pg_client.PostgresClient() as cur:
         session_data = None
         if data.metric_type == schemas.MetricType.click_map:
@@ -404,7 +404,7 @@ def create_card(project_id, user_id, data: schemas.CardSchema, dashboard=False):
     return {"data": get_card(metric_id=r["metric_id"], project_id=project_id, user_id=user_id)}
 
 
-def update_card(metric_id, user_id, project_id, data: schemas.CardSchema):
+async def update_card(metric_id, user_id, project_id, data: schemas.CardSchema):
     metric: dict = get_card(metric_id=metric_id, project_id=project_id, user_id=user_id, flatten=False)
     if metric is None:
         return None
@@ -482,7 +482,7 @@ def update_card(metric_id, user_id, project_id, data: schemas.CardSchema):
     return get_card(metric_id=metric_id, project_id=project_id, user_id=user_id)
 
 
-def search_all(project_id, user_id, data: schemas.SearchCardsSchema, include_series=False):
+async def search_all(project_id, user_id, data: schemas.SearchCardsSchema, include_series=False):
     constraints = ["metrics.project_id = %(project_id)s",
                    "metrics.deleted_at ISNULL"]
     params = {"project_id": project_id, "user_id": user_id,
@@ -554,7 +554,7 @@ async def get_all(project_id, user_id):
     return result
 
 
-def delete_card(project_id, metric_id, user_id):
+async def delete_card(project_id, metric_id, user_id):
     async with pg_client.PostgresClient() as cur:
         await cur.execute(
             cur.mogrify("""\
@@ -663,7 +663,7 @@ async def change_state(project_id, metric_id, user_id, status):
     return await get_card(metric_id=metric_id, project_id=project_id, user_id=user_id)
 
 
-def get_funnel_sessions_by_issue(user_id, project_id, metric_id, issue_id,
+async def get_funnel_sessions_by_issue(user_id, project_id, metric_id, issue_id,
                                  data: schemas.CardSessionsSchema
                                  # , range_value=None, start_date=None, end_date=None
                                  ):

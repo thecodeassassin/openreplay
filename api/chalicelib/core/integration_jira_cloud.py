@@ -42,7 +42,7 @@ class JIRAIntegration(integration_base.BaseIntegration):
         return self._issue_handler
 
     # TODO: remove this once jira-oauth is done
-    def get(self):
+    async def get(self):
         async with pg_client.PostgresClient() as cur:
             await cur.execute(
                 cur.mogrify(
@@ -69,7 +69,7 @@ class JIRAIntegration(integration_base.BaseIntegration):
         integration["provider"] = self.provider.lower()
         return integration
 
-    def update(self, changes, obfuscate=False):
+    async def update(self, changes, obfuscate=False):
         async with pg_client.PostgresClient() as cur:
             sub_query = [f"{helper.key_to_snake_case(k)} = %({k})s" for k in changes.keys()]
             await cur.execute(
@@ -106,7 +106,7 @@ class JIRAIntegration(integration_base.BaseIntegration):
             w = helper.dict_to_camel_case(w)
         return await self.get()
 
-    def delete(self):
+    async def delete(self):
         async with pg_client.PostgresClient() as cur:
             await cur.execute(
                 cur.mogrify("""\

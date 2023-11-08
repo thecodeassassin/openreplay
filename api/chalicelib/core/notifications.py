@@ -69,7 +69,7 @@ async def view_notification(user_id, notification_ids=[], tenant_id=None, startT
     return True
 
 
-def create(notifications):
+async def create(notifications):
     if len(notifications) == 0:
         return []
     async with pg_client.PostgresClient() as cur:

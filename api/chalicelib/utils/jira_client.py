@@ -35,7 +35,7 @@ class JiraManager:
         except JIRAError as e:
             self.retries -= 1
             if (e.status_code // 100) == 4 and self.retries > 0:
-                time.sleep(1)
+                await asyncio.sleep(1.0)
                 return await self.get_projects()
             logger.error(f"=>JIRA Exception {e.text}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"JIRA: {e.text}")
@@ -45,30 +45,30 @@ class JiraManager:
 
         return projects_dict_list
 
-    def get_project(self):
+    async def get_project(self):
         try:
-            project = self._jira.project(self._config['JIRA_PROJECT_ID'])
+            project = await self._jira.project(self._config['JIRA_PROJECT_ID'])
         except JIRAError as e:
             self.retries -= 1
             if (e.status_code // 100) == 4 and self.retries > 0:
-                time.sleep(1)
+                await asyncio.sleep(1.0)
                 return await self.get_project()
             logger.error(f"=>Exception {e.text}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"JIRA: {e.text}")
         return self.__parser_project_info(project)
 
-    def get_issues(self, sql: str, offset: int = 0):
+    async def get_issues(self, sql: str, offset: int = 0):
         jql = "project = " + self._config['JIRA_PROJECT_ID'] \
               + ((" AND " + sql) if sql is not None and len(sql) > 0 else "") \
               + " ORDER BY createdDate DESC"
 
         try:
-            await issues = self._jira.search_issues(jql, maxResults=1000, startAt=offset, fields=fields)
+            issues = await self._jira.search_issues(jql, maxResults=1000, startAt=offset, fields=fields)
         except JIRAError as e:
             self.retries -= 1
             if (e.status_code // 100) == 4 and self.retries > 0:
-                time.sleep(1)
-                return self.get_issues(sql, offset)
+                await asyncio.sleep(1.0)
+                return await self.get_issues(sql, offset)
             logger.error(f"=>Exception {e.text}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"JIRA: {e.text}")
 
@@ -79,15 +79,15 @@ class JiraManager:
         # return {"total": issues.total, "issues": issue_dict_list}
         return issue_dict_list
 
-    def get_issue(self, issue_id: str):
+    async def get_issue(self, issue_id: str):
         try:
             # issue = self._jira.issue(issue_id)
-            issue = self._jira.issue(issue_id, fields=fields)
+            issue = await self._jira.issue(issue_id, fields=fields)
         except JIRAError as e:
             self.retries -= 1
             if (e.status_code // 100) == 4 and self.retries > 0:
-                time.sleep(1)
-                return self.get_issue(issue_id)
+                await asyncio.sleep(1.0)
+                return await self.get_issue(issue_id)
             logger.error(f"=>Exception {e.text}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"JIRA: {e.text}")
         return self.__parser_issue_info(issue)
@@ -107,57 +107,57 @@ class JiraManager:
         except Exception as e:
             self.retries -= 1
             if self.retries > 0:
-                time.sleep(1)
+                await asyncio.sleep(1.0)
                 out = await self.get_issue_v3(issue_id)
                 return out
             logger.error(f"=>Exception {e}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"JIRA: get issue error")
         return self.__parser_issue_info(issue.json())
 
-    def create_issue(self, issue_dict):
+    async def create_issue(self, issue_dict):
         issue_dict["project"] = {"id": self._config['JIRA_PROJECT_ID']}
         try:
-            issue = self._jira.create_issue(fields=issue_dict)
+            issue = await self._jira.create_issue(fields=issue_dict)
             return self.__parser_issue_info(issue)
         except JIRAError as e:
             self.retries -= 1
             if (e.status_code // 100) == 4 and self.retries > 0:
-                time.sleep(1)
-                return self.create_issue(issue_dict)
+                await asyncio.sleep(1.0)
+                return await self.create_issue(issue_dict)
             logger.error(f"=>Exception {e.text}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"JIRA: {e.text}")
 
-    def close_issue(self, issue):
+    async def close_issue(self, issue):
         try:
             # jira.transition_issue(issue, '5', assignee={'name': 'pm_user'}, resolution={'id': '3'})
-            self._jira.transition_issue(issue, 'Close')
+            await self._jira.transition_issue(issue, 'Close')
         except JIRAError as e:
             self.retries -= 1
             if (e.status_code // 100) == 4 and self.retries > 0:
-                time.sleep(1)
-                return self.close_issue(issue)
+                await asyncio.sleep(1.0)
+                return await self.close_issue(issue)
             logger.error(f"=>Exception {e.text}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"JIRA: {e.text}")
 
-    def assign_issue(self, issue_id, account_id) -> bool:
+    async def assign_issue(self, issue_id, account_id) -> bool:
         try:
-            return self._jira.assign_issue(issue_id, account_id)
+            return await self._jira.assign_issue(issue_id, account_id)
         except JIRAError as e:
             self.retries -= 1
             if (e.status_code // 100) == 4 and self.retries > 0:
-                time.sleep(1)
-                return self.assign_issue(issue_id, account_id)
+                await asyncio.sleep(1.0)
+                return await self.assign_issue(issue_id, account_id)
             logger.error(f"=>Exception {e.text}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"JIRA: {e.text}")
 
-    def add_comment(self, issue_id: str, comment: str):
+    async def add_comment(self, issue_id: str, comment: str):
         try:
-            comment = self._jira.add_comment(issue_id, comment)
+            comment = await self._jira.add_comment(issue_id, comment)
         except JIRAError as e:
             self.retries -= 1
             if (e.status_code // 100) == 4 and self.retries > 0:
-                time.sleep(1)
-                return self.add_comment(issue_id, comment)
+                await asyncio.sleep(1.0)
+                return await self.add_comment(issue_id, comment)
             logger.error(f"=>Exception {e.text}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"JIRA: {e.text}")
         return self.__parser_comment_info(comment)
@@ -194,16 +194,16 @@ class JiraManager:
         except Exception as e:
             self.retries -= 1
             if self.retries > 0:
-                time.sleep(1)
+                await asyncio.sleep(1.0)
                 out = await self.add_comment_v3(issue_id, comment)
                 return out
             logger.error(f"=>Exception {e}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"JIRA: comment error")
         return self.__parser_comment_info(comment_response.json())
 
-    def get_comments(self, issueKey):
+    async def get_comments(self, issueKey):
         try:
-            comments = self._jira.comments(issueKey)
+            comments = await self._jira.comments(issueKey)
             results = []
             for c in comments:
                 results.append(self.__parser_comment_info(c.raw))
@@ -211,24 +211,24 @@ class JiraManager:
         except JIRAError as e:
             self.retries -= 1
             if (e.status_code // 100) == 4 and self.retries > 0:
-                time.sleep(1)
-                return self.get_comments(issueKey)
+                await asyncio.sleep(1.0)
+                return await self.get_comments(issueKey)
             logger.error(f"=>Exception {e.text}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"JIRA: {e.text}")
 
-    def get_meta(self):
+    async def get_meta(self):
         meta = {}
         meta['issueTypes'] = await self.get_issue_types()
         meta['users'] = await self.get_assignable_users()
         return meta
 
-    def get_assignable_users(self):
+    async def get_assignable_users(self):
         try:
             users = self._jira.search_assignable_users_for_issues(project=self._config['JIRA_PROJECT_ID'], query="*")
         except JIRAError as e:
             self.retries -= 1
             if (e.status_code // 100) == 4 and self.retries > 0:
-                time.sleep(1)
+                await asyncio.sleep(1.0)
                 return self.get_assignable_users()
             logger.error(f"=>Exception {e.text}")
             if e.status_code == 401:
@@ -247,11 +247,11 @@ class JiraManager:
 
     async def get_issue_types(self):
         try:
-            await types = self._jira.project(self._config['JIRA_PROJECT_ID']).issueTypes
+            types = await self._jira.project(self._config['JIRA_PROJECT_ID']).issueTypes
         except JIRAError as e:
             self.retries -= 1
             if (e.status_code // 100) == 4 and self.retries > 0:
-                time.sleep(1)
+                await asyncio.sleep(1.0)
                 return await self.get_issue_types()
             logger.error(f"=>Exception {e.text}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"JIRA: {e.text}")

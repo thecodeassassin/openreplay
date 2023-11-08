@@ -8,12 +8,14 @@ from chalicelib.core import sourcemaps_parser
 from chalicelib.utils.storage import StorageClient, generators
 
 
-def presign_share_urls(project_id, urls):
+async def presign_share_urls(project_id, urls):
     results = []
     for u in urls:
-        results.append(await asyncio.to_thread(StorageClient.get_presigned_url_for_sharing, bucket=config('sourcemaps_bucket'), expires_in=120,
+        result = await asyncio.to_thread(StorageClient.get_presigned_url_for_sharing, bucket=config('sourcemaps_bucket'), expires_in=120,
                                                                key=generators.generate_file_key_from_url(project_id, u),
-                                                               check_exists=True))
+                                                               check_exists=True)
+        results.append(result)
+
     return results
 
 

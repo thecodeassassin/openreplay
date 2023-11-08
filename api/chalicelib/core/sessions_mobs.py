@@ -44,7 +44,7 @@ async def get_urls(project_id, session_id, check_existence: bool = True):
 async def get_urls_depercated(session_id, check_existence: bool = True):
     results = []
     for k in __get_mob_keys_deprecated(session_id=session_id):
-        if check_existence and not await asyncio.to_thread(StorageClient.exists, bucket=config("sessions_bucket"), key=k)):
+        if check_existence and not await asyncio.to_thread(StorageClient.exists, bucket=config("sessions_bucket"), key=k):
             continue
         results.append(await asyncio.to_thread(StorageClient.get_presigned_url_for_sharing,
             bucket=config("sessions_bucket"),

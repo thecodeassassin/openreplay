@@ -1,4 +1,4 @@
-/mport json
+import json
 
 import schemas
 from chalicelib.core import sourcemaps, sessions
@@ -295,7 +295,7 @@ async def get_details(project_id, error_id, user_id, **data):
     return {"data": helper.dict_to_camel_case(row)}
 
 
-def get_details_chart(project_id, error_id, user_id, **data):
+async def get_details_chart(project_id, error_id, user_id, **data):
     pg_sub_query = __get_basic_constraints()
     pg_sub_query.append("error_id = %(error_id)s")
     pg_sub_query_chart = __get_basic_constraints(time_constraint=False, chart=True)

@@ -1,4 +1,4 @@
-/mport math
+import math
 
 import schemas
 from chalicelib.core import metadata
@@ -77,7 +77,7 @@ METADATA_FIELDS = {"userId": "user_id",
                    "metadata10": "metadata_10"}
 
 
-def __get_meta_constraint(project_id, data):
+async def __get_meta_constraint(project_id, data):
     if len(data.get("filters", [])) == 0:
         return []
     constraints = []

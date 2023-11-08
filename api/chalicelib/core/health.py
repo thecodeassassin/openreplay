@@ -229,7 +229,7 @@ async def __process_health(health_map):
     return response
 
 
-def cron():
+async def cron():
     async with pg_client.PostgresClient() as cur:
         query = cur.mogrify("""SELECT projects.project_id,
                                       projects.created_at,
@@ -295,7 +295,7 @@ def cron():
 
 
 # this cron is used to correct the sessions&events count every week
-def weekly_cron():
+async def weekly_cron():
     async with pg_client.PostgresClient(long_query=True) as cur:
         query = cur.mogrify("""SELECT project_id,
                                       projects_stats.last_update_at

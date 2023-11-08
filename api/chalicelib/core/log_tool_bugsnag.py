@@ -43,7 +43,7 @@ async def get(project_id):
     return await log_tools.get(project_id=project_id, integration=IN_TY)
 
 
-def update(tenant_id, project_id, changes):
+async def update(tenant_id, project_id, changes):
     options = {}
     if "authorizationToken" in changes:
         options["authorizationToken"] = changes.pop("authorizationToken")

@@ -31,7 +31,7 @@ def __merge_cells(rows, start, count, replacement):
     return rows
 
 
-def __get_grouped_clickrage(rows, session_id, project_id):
+async def __get_grouped_clickrage(rows, session_id, project_id):
     click_rage_issues = await issues.get_by_session_id(session_id=session_id, issue_type="click_rage", project_id=project_id)
     if len(click_rage_issues) == 0:
         return rows
@@ -68,7 +68,7 @@ async def get_by_session_id(session_id, project_id, group_clickrage=False, event
                         )
             rows += await cur.fetchall()
             if group_clickrage:
-                rows = __get_grouped_clickrage(rows=rows, session_id=session_id, project_id=project_id)
+                rows = await __get_grouped_clickrage(rows=rows, session_id=session_id, project_id=project_id)
         if event_type is None or event_type == schemas.EventType.input:
             await cur.execute(cur.mogrify("""
                 SELECT 
