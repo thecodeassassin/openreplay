@@ -152,7 +152,7 @@ context: Context = ContextVar("context", default=None)
 
 
 @route("GET")
-async def index():
+async def index(*args):
     return 200, [(b"content-type", b"text/plain")], b"hello from orpy"
 
 
@@ -255,50 +255,11 @@ async def view_public_reset_password_link():
     return 200, [(b"content-type", "application/javascript")], out
 
 
-async def http(send):
-    path = context.get().scope["path"]
-
-    if path.startswith("/static/"):
-        # XXX: Secure the /static/* route, and avoid people poking at
-        # files that are not in the local ./static/
-        # directory. Security can be as simple as that.
-        if ".." in path:
-            await send(
-                {
-                    "type": "http.response.start",
-                    "status": 404,
-                }
-            )
-            await send(
-                {
-                    "type": "http.response.body",
-                    "body": b"File not found",
-                }
-            )
-        else:
-            components = path.split("/")
-            filename = components[-1]
-            filepath = ORPY_ROOT / "/".join(components[1:])
-            mimetype = guess_type(filename)[0] or "application/octet-stream"
-
-            await send(
-                {
-                    "type": "http.response.start",
-                    "status": 200,
-                    "headers": [
-                        [b"content-type", mimetype.encode("utf8")],
-                    ],
-                }
-            )
-
-            with filepath.open("rb") as f:
-                await send(
-                    {
-                        "type": "http.response.body",
-                        "body": f.read(),
-                    }
-                )
-    elif path == "/favicon.ico":
+async def http_serve_static():
+    # XXX: Secure the /static/* route, and avoid people poking at
+    # files that are not in the local ./static/
+    # directory. Security can be as simple as that.
+    if ".." in path:
         await send(
             {
                 "type": "http.response.start",
@@ -311,30 +272,84 @@ async def http(send):
                 "body": b"File not found",
             }
         )
-    elif not path.endswith("/"):
-        # XXX: All paths but static path must end with a slash.  That
-        # is a dubious choice when considering files, possibly large
-        # files that are served dynamically.
+    else:
+        components = path.split("/")
+        filename = components[-1]
+        filepath = ORPY_ROOT / "/".join(components[1:])
+        mimetype = guess_type(filename)[0] or "application/octet-stream"
 
-        # XXX: Also at this time it is not used, since all HTTP path
-        # serve the ./index.html stuff which always connect via
-        # websockets (and there is no check on the websocket path).
-        path += "/"
         await send(
             {
                 "type": "http.response.start",
-                "status": 301,
+                "status": 200,
                 "headers": [
-                    [b"location", path.encode("utf8")],
+                    [b"content-type", mimetype.encode("utf8")],
                 ],
             }
         )
-        await send(
-            {
-                "type": "http.response.body",
-                "body": b"Moved permanently",
-            }
-        )
+
+        with filepath.open("rb") as f:
+            await send(
+                {
+                    "type": "http.response.body",
+                    "body": f.read(),
+                }
+            )
+
+
+async def http_not_found():
+    await send(
+        {
+            "type": "http.response.start",
+            "status": 404,
+        }
+    )
+    await send(
+        {
+            "type": "http.response.body",
+            "body": b"File not found",
+        }
+    )
+
+async def http_redirect_with_slash(path):
+    # XXX: All paths but static path must end with a slash.  That
+    # is a dubious choice when considering files, possibly large
+    # files that are served dynamically.
+
+    # XXX: Also at this time it is not used, since all HTTP path
+    # serve the ./index.html stuff which always connect via
+    # websockets (and there is no check on the websocket path).
+    path += "/"
+    await send(
+        {
+            "type": "http.response.start",
+            "status": 301,
+            "headers": [
+                [b"location", path.encode("utf8")],
+            ],
+        }
+    )
+    await send(
+        {
+            "type": "http.response.body",
+            "body": b"Moved permanently",
+        }
+    )
+
+
+
+async def http(send):
+    path = context.get().scope["path"]
+
+    if path.startswith("/static/"):
+        await http_serve_static(path)
+        return 
+    elif path == "/favicon.ico":
+        await http_not_found()
+        return
+    elif not path.endswith("/"):
+        await http_redirect_with_slash(path)
+        return 
     else:
         method = context.get().scope["method"]
         route = tuple([method] + path.split("/")[1:-1])
@@ -348,30 +363,13 @@ async def http(send):
             lambda x: None,
         )
 
-        print(view)
-
         if view is None:
-            # TODO: factor into a function http_404_not_found
-            await send(
-                {
-                    "type": "http.response.start",
-                    "status": 404,
-                    "headers": [
-                        [b"content-type", b"text/html"],
-                    ],
-                }
-            )
-            await send(
-                {
-                    "type": "http.response.body",
-                    "body": b"Not found",
-                }
-            )
+            await http_not_found()
             return
 
         # XXX: the body must be bytes, TODO it will be
         # wise to support a body that is a generator
-        code, headers, body = view()
+        code, headers, body = await view()
 
         await send(
             {
