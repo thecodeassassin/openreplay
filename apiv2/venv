@@ -28,11 +28,7 @@ if test -d $VENV; then
         export MYVENV=1
         source $VENV/bin/activate
         if [[ -z "$@" ]]; then
-            if test -f $VENV/bin/rc.sh; then
-                bash --rcfile $VENV/bin/rc.sh
-            else
-                bash --norc --noprofile
-            fi
+            $SHELL $VENV/bin/rc.sh
         else
             exec "$@"
         fi
